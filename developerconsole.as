@@ -1,13 +1,15 @@
-﻿// What		: AS3 Developer Console	(v1.06) - http://code.google.com/p/as3developerconsole/
+﻿// What		: AS3 Developer Console	(v1.08) - http://code.google.com/p/as3developerconsole/
 // Author	: Corey Zeke Womack (Torrunt)
-// Contact	: torrunt56@gmail.com | torrunt.newgrounds.com | torrunt.tumblr.com/games
+// Contact	: me@torrunt.net
+// Website	: torrunt.net
 
 // Notes:
 // - Type 'help' in console for help.
 // - If your testing your project in the Flash IDE make sure 'Disable Keyboard Shortcuts' is ticked.
-// - When testing your project in the Flash IDE you have to click the swf at least once to be able to see the text cursor.
+// - When testing your project in an Adobe Flash IDE you have to click the swf at least once to be able to see the text cursor.
 
-package classes {
+package 
+{
 	import flash.display.Sprite;
 	import flash.text.*;
 	import flash.events.KeyboardEvent;
@@ -17,30 +19,36 @@ package classes {
 	import flash.utils.getDefinitionByName;
 	import flash.utils.getTimer;
 	
-	public class developerconsole extends Sprite {
+	public class developerconsole extends Sprite
+	{
 		
-		// Customisation
-		public var consoleheight:Number				= 125;		// height of the console
+		// Customisation (to customise look go to the constructor)
+		public var consoleHeight:Number				= 145;		// height of the console
 		public var maxSuggestions:int				= 14;		// max suggestions that can be shown at once
 		public var showTypes:Boolean 				= true;		// show data/return types of vars and functions
-		public var returnFunctions:Boolean 			= true;		// echo function return values
+		
+		public var createVarsThatDontExist:Boolean	= true;		// when assigning and the variable doesn't exist, create it. (will not create member variables)
+		
+		public var slideAnimation:Boolean			= true;		// sliding animation when opening / closing
+		public var slideAnimation_speed:Number 		= 15;
 		
 		public var tracerView:Boolean 				= true;		// show the tracer table when using the tracer
-		public var tracerActualTrace:Boolean 		= true;		// actually use as3's trace() function when using the tracer
-		public var tracerActualTraceFPS:Boolean 	= false;	// actually use as3's trace() function when using the tracer for fps
+		public var tracerActualTrace:Boolean 		= true;		// use as3's trace() function when using the tracer	(IDE Output)
+		public var tracerActualTraceFPS:Boolean 	= false;	// use as3's trace() function when using the tracer for fps
 		public var tracerActualTraceLayout:String 	= "name : value";
-		public var tracerOneCiclePerLine:Boolean 	= false;	// makes everything traced in one cicle only apear on one line
-		public var tracerOneCiclePerLine_seperator:String = " ";
+		public var tracerOneCiclePerLine:Boolean 	= true;		// makes everything traced in one cicle only apear on one line
+		public var tracerOneCiclePerLine_seperator:String = "   ";
 		
 		
-		private static var versionName:String = "Torrunt's AS3 Developer Console (v1.06)"
-		private static var help:String = " - Type 'clear' to clear the console.\n - Type 'author' to get info on the author of this console.\n - Use the Up/Down arrow keys to go through your previous used commands or suggestions\n - Use Quotations when you want enter string literal with spaces (\")\n - Use Square Brackets when you want to use an arral literal (e.g:[0,1]).\n - You can do multiple commands at once by seperating them with ';'s.\n - You can also put x# after a ';' to do that command # many times.\n - Calculations are allowed when assigning or in parameters (+,-,*,/,%). BIMDAS is not supported.\n - Type 'trace:something' to start tracing something or 'stoptrace:something' to stop tracing it.\n - You can also use 'trace:fps' to check your fps.\n - Use pgUp and pgDown on your keyboard to scroll up and down";
-		private static var author:String = versionName + " was programmed by Corey Zeke Womack (Torrunt)\ntorrunt56@gmail.com\ntorrunt.newgrounds.com\ntorrunt.tumblr.com/games";
+		private static var versionName:String = "Torrunt's AS3 Developer Console (v1.08)"
+		private static var help:String = " - Type 'clear' to clear the console.\n - Type 'author' to get info on the author of this console.\n - Use Quotations when you want enter string literal with spaces (\"\")\n - Use Square Brackets when you want to use an arral literal (e.g:[0,1]).\n - You can do multiple commands at once by seperating them with ';'s.\n - You can also put x# after a ';' to do that command # many times.\n - Calculations are allowed when assigning or in parameters (+,-,*,/,%). BIMDAS is not supported.\n - Type 'trace:something' to start tracing something or 'stoptrace:something' to stop tracing it.\n - You can also use 'trace:fps' to check your fps.\n - Use the Up/Down arrow keys to go through your previous used commands or suggestions\n - Use PgUp and PgDn on your keyboard to scroll up and down";
+		private static var author:String = versionName + " was programmed by Corey Zeke Womack (Torrunt)\nme@torrunt.net\nhttp://torrunt.net";
 		
 		// Creating / Defaults
 		private var main:*;
-		public var opened:Boolean = false;
-		
+		private var opened:Boolean = false;
+	
+		private var container:Sprite = new Sprite();
 		private var suggesttext:TextField;
 		private var consoleTextFormat:TextFormat;
 		private var historytext:TextField;
@@ -50,6 +58,14 @@ package classes {
 		private var cmdhistory:Array = new Array();
 		private var cicle:Array;
 		private var hpos:int = -1;
+		
+		// temp variables
+		private var tempVarNames:Array = new Array();
+		private var tempVars:Array = new Array();
+		
+			// slide animation
+		private var slideAnimation_animating:Boolean = false;
+		private var slideAnimation_target:Number = 0;
 		
 			// tracer
 		private var tracer:TextField;
@@ -64,23 +80,26 @@ package classes {
         private var ticks:uint = 0;
 		
 		// Constructor
-		public function developerconsole(_main:*){
+		public function developerconsole(_main:*)
+		{
 			main = _main;	// Start off point for seeing/using variables and functions (main class or frame/stage)
+			
+			addChild(container);
 			
 			// Customise Look
 				// Text Format
 			consoleTextFormat = new TextFormat();
 			consoleTextFormat.size = 14;
-			consoleTextFormat.font = "Arial";
+			consoleTextFormat.font = "Courier New";
 			consoleTextFormat.color = 0xFFFFFF;
 			
 				// History Textbox
 			historytext = new TextField();
-			addChild(historytext);
+			container.addChild(historytext);
 			
 			historytext.width = main.stage.stageWidth;
-			historytext.height = consoleheight;
-			historytext.alpha = 0.9;
+			historytext.height = consoleHeight - 20;
+			historytext.alpha = 0.85;
 			historytext.selectable = false;
 			historytext.multiline = true;
 			historytext.wordWrap = true;
@@ -91,20 +110,20 @@ package classes {
 				// Input Textbox
 			inputtext = new TextField();
 			inputtext.type = TextFieldType.INPUT;
-			addChild(inputtext);
+			container.addChild(inputtext);
 			
 			inputtext.width = main.stage.stageWidth;
-			inputtext.height = 20;
+			inputtext.height = 21;
 			inputtext.y = historytext.height;
 			inputtext.x = 0;
-			inputtext.alpha = 0.9;
+			inputtext.alpha = 0.85;
 			inputtext.defaultTextFormat = consoleTextFormat;
 			inputtext.background = true;
 			inputtext.backgroundColor = 0x4B4B4B;
 			
 				// Suggest/auto-complete Textbox
 			suggesttext = new TextField();
-			addChild(suggesttext);
+			container.addChild(suggesttext);
 			
 			suggesttext.width = 150;
 			suggesttext.height = 20;
@@ -118,13 +137,13 @@ package classes {
 			suggesttext.visible = false;
 			
 				// Tracer
-			tracerAlignX = main.stage.stageWidth - 10;
-			tracerAlignY = 10;
+			tracerAlignX = main.stage.stageWidth - 5;
+			tracerAlignY = 5;
 			
 			consoleTextFormat.bold = true;
 	
 			tracer = new TextField();
-			main.stage.addChild(tracer);
+			addChild(tracer);
 			
 			tracer.alpha = 0.75;
 			tracer.selectable = false;
@@ -137,7 +156,7 @@ package classes {
 			
 			
 			tracerNames = new TextField();
-			main.stage.addChild(tracerNames);
+			addChild(tracerNames);
 			
 			tracerNames.alpha = 0.75;
 			tracerNames.selectable = false;
@@ -149,48 +168,68 @@ package classes {
 			tracerNames.visible = false;
 			
 			// Startup Message
-			echo(versionName);
+			echo(versionName, "-", "torrunt.net");
+			
+			// Animation start position
+			if (slideAnimation)
+				container.y = -historytext.height - inputtext.height;
 			
 			// Hide self
-			visible = false;
+			container.visible = false;
         }
 		
 		//////////////////////////
 		//		Open/Close		//
 		/////////////////////////
 		
-		public function open():void {
-			if (!opened){
-				visible = true;
-				opened = true;
-				main.stage.focus = inputtext;
-				
-				main.stage.addEventListener(KeyboardEvent.KEY_UP, keyup);
-				main.stage.addEventListener(KeyboardEvent.KEY_DOWN, keydown);
-				inputtext.addEventListener(TextEvent.TEXT_INPUT,typed);
-			}
+		public function open():void
+		{
+			if (opened)
+				return;
+			
+			container.visible = true;
+			opened = true;
+			main.stage.focus = inputtext;
+			
+			main.stage.addEventListener(KeyboardEvent.KEY_UP, keyup);
+			main.stage.addEventListener(KeyboardEvent.KEY_DOWN, keydown);
+			inputtext.addEventListener(TextEvent.TEXT_INPUT,typed);
+			
+			
+			// animation
+			if (slideAnimation)
+				startSlideAnimation(true);
 		}
 		
-		public function close():void {
-			if (opened){
-				visible = false;
-				opened = false;
-				inputtext.text = "";
-				hpos = -1;
+		public function close():void
+		{
+			if (!opened)
+				return;
 				
-				main.stage.removeEventListener(KeyboardEvent.KEY_UP, keyup);
-				main.stage.removeEventListener(KeyboardEvent.KEY_DOWN, keydown);
-				inputtext.removeEventListener(TextEvent.TEXT_INPUT,typed);
-			}
+			container.visible = false;
+			opened = false;
+			inputtext.text = "";
+			hpos = -1;
+			
+			main.stage.removeEventListener(KeyboardEvent.KEY_UP, keyup);
+			main.stage.removeEventListener(KeyboardEvent.KEY_DOWN, keydown);
+			inputtext.removeEventListener(TextEvent.TEXT_INPUT, typed);
+			
+			
+			// animation
+			if (slideAnimation)
+				startSlideAnimation(false);
 		}
 		
-		public function toggle():void {
-			if (opened){
+		public function toggle():void
+		{
+			if (opened)
 				close();
-			} else {
+			else
 				open();
-			}
 		}
+		
+		public function isOpen():Boolean { return opened; }
 		
 		//////////////////////////
 		//		Controls		//
@@ -198,24 +237,27 @@ package classes {
 		
 		private var pressedUp:Boolean = false;
 		
-		private function keydown(e:KeyboardEvent):void {
+		private function keydown(e:KeyboardEvent):void
+		{
 			// Enter
-			if (e.keyCode == 13 && inputtext.text != ""){
-				echo(inputtext.text);
+			if (e.keyCode == 13 && inputtext.text != "")
+			{
+				echo(inputtext.text, "#999999");
 				
 				if (cmdhistory[cmdhistory.length-1] != inputtext.text){
 					cmdhistory.push(inputtext.text);
 					hpos = -1;
 				}
 				
-				interpret(inputtext.text);
+				eval(inputtext.text);
 				
 				inputtext.text = "";
 				hidesuggestions();
 			}
 			
 			// Backspace
-			if (e.keyCode == 8){
+			if (e.keyCode == 8)
+			{
 				if(inputtext.length-1 <= 0){
 					hidesuggestions();
 				} else {
@@ -225,23 +267,28 @@ package classes {
 			
 			// Up and Down
 				// Pick array to go through
-			if (suggesttext.visible){
+			if (suggesttext.visible)
 				cicle = cmdsuggest;
-			} else {
+			else
 				cicle = cmdhistory;
-			}
+			
 				// Up
-			if (e.keyCode == 38 && cicle[cicle.length-1-(hpos+1)] != null){
+			if (e.keyCode == 38 && cicle[cicle.length-1-(hpos+1)] != null)
+			{
 				hpos++;
 				changeInputbox();
 				pressedUp = true;
 			}
 				// Down
-			if (e.keyCode == 40){
-				if (cicle[cicle.length-1-(hpos-1)] != null){
+			if (e.keyCode == 40)
+			{
+				if (cicle[cicle.length-1-(hpos-1)] != null)
+				{
 					hpos--;
 					changeInputbox();
-				} else if (cicle == cmdhistory) {
+				}
+				else if (cicle == cmdhistory)
+				{
 					inputtext.text = "";
 					hpos = -1;
 				}
@@ -249,29 +296,36 @@ package classes {
 			
 			// Scrolling Up and Down
 				// Page Up
-			if (e.keyCode == 33){
+			if (e.keyCode == 33)
+			{
 				historytext.scrollV--;
 			}
 				// Page Down
-			if (e.keyCode == 34){
+			if (e.keyCode == 34)
+			{
 				historytext.scrollV++;
 			}
 		}
 		
 			// Fix cursor position if you press up when moving through history or suggestions
-		private function keyup(e:KeyboardEvent):void {
-			if (pressedUp){
+		private function keyup(e:KeyboardEvent):void
+		{
+			if (pressedUp)
+			{
 				inputtext.setSelection(inputtext.length,inputtext.length);
 				pressedUp = false;
 			}
 		}
 		
 		// Change inputbox contents to the next/previous history or suggestion item
-		private function changeInputbox():void {
+		private function changeInputbox():void
+		{
 			// If going through suggestions: just replace the thing you're currently writing
-			if (cicle == cmdsuggest){
+			if (cicle == cmdsuggest)
+			{
 				// if last suggestion added a '();' at the end - remove it
-				if (inputtext.text.lastIndexOf("();")+3 == inputtext.length){
+				if (inputtext.text.lastIndexOf("();")+3 == inputtext.length)
+				{
 					inputtext.text = inputtext.text.substr(0,inputtext.length-3);
 				}
 				
@@ -280,12 +334,15 @@ package classes {
 				var symbols:Array = fillArrayWithIndexsOf(symbols,inputtext.text,["."," ","(",",","-","+","/","*","%",";",":","["]);
 					// get highest index (last used symbol)
 				var ls:int = symbols[0]; // (last symbol)
-				for (var i:int = 1; i < symbols.length; i++){
-					if (symbols[i] > ls) ls = symbols[i];
+				for (var i:int = 1; i < symbols.length; i++)
+				{
+					if (symbols[i] > ls)
+						ls = symbols[i];
 				}
 				
 				// if the last symbol is a bracket and is the last thing in the inputbox: make it the second last symbol
-				if (inputtext.text.charAt(ls) == "(" && (ls == inputtext.length-1)){
+				if (inputtext.text.charAt(ls) == "(" && (ls == inputtext.length-1))
+				{
 					inputtext.text = inputtext.text.substr(0,ls);
 					changeInputbox();
 					return;
@@ -295,7 +352,9 @@ package classes {
 				inputtext.text = inputtext.text.substr(0,ls+1);
 				// Appened suggestion
 				inputtext.appendText(cicle[cicle.length-1-hpos]);
-			} else {
+			}
+			else
+			{
 			// Otherwise replace the whole inputtext
 				inputtext.text = cicle[cicle.length-1-hpos]; // Replace text
 			}
@@ -312,18 +371,27 @@ package classes {
 		private var hitMax:Boolean = false;
 		
 		// Update while typing
-		private function typed(e:TextEvent):void {
-			showsuggestions(inputtext.text+e.text);
+		private function typed(e:TextEvent):void
+		{
+			if (e.text == "`" || inputtext.text == "`")
+				inputtext.text = inputtext.text.slice(0, -1);
+			
+			showsuggestions(inputtext.text + e.text);
 		}
 		
-		private function showsuggestions(str:String):void {
+		private function showsuggestions(str:String):void
+		{
 			// reset to defaults
 			hidesuggestions();	// hide previous
 			areSuggestions = false;
 			hitMax = false;
 			
+			if (str.length == 0)
+				return;
+			
 			// check for ';'s (end of commands)
-			if (str.indexOf(";") > 1){
+			if (str.indexOf(";") > 1)
+			{
 				str = str.slice(str.lastIndexOf(";")+1,str.length);
 			}
 			
@@ -331,78 +399,107 @@ package classes {
 			str = stringReplaceAll(str," ");
 			
 			var symbols:Array = fillArrayWithIndexsOf(symbols,str,["(","=",",","-","+","/","*","%",":","["]);
+			
+				// Don't look for '[' or '(' if last one was closed
+			if (characterCount(str,"]") == characterCount(str,"["))
+				symbols.pop();
+			if (characterCount(str, ")") == characterCount(str, "("))
+				symbols.shift();
+			
 			var startFrom:int = symbols[0];
 			
-			if (characterCount(str,"]") == characterCount(str,"[")) symbols.pop(); // Don't look for '[' if last one was closed
-			
-			for (var s:int = 1; s < symbols.length; s++){
+			for (var s:int = 1; s < symbols.length; s++)
 				if (symbols[s] > startFrom) startFrom = symbols[s];
-			}
 			str = str.substring(startFrom+1,str.length);
 			
 			// Get all public Vars and Functions
-			if (str != ""){
-				try {
+			if (str != "")
+			{
+				try
+				{
 					// FIND ME
-					var ob = stringToVar(str, true);
+					var ob:* = stringToVarWithCalculation(str, main, true);
 					var stre:String = str.substring(str.lastIndexOf(".")+1,str.length);
 					
 					var description:XML = describeType(ob);
 					
 					var type:String = "";
 					
-					if (description.*.length() > 3){ // if 3 (or less?) that means ob doesn't exist
+					if (description.*.length() > 3) // if 3 (or less) that means ob doesn't exist
+					{
 						// Vars
-						for each (var v:XML in description.variable){
-							if (suggesttext.numLines < maxSuggestions){
-								if(v.@name.indexOf(stre) == 0){
-									if (showTypes) type = ":" + v.@type;
+						for each (var v:XML in description.variable)
+						{
+							if (suggesttext.numLines < maxSuggestions)
+							{
+								if(v.@name.indexOf(stre) == 0)
+								{
+									if (showTypes)
+										type = ":" + v.@type;
 									
 									cmdsuggest.push(v.@name);
 									suggesttext.appendText(v.@name + type + "\n");
 									areSuggestions = true;
 								}
-							} else {
+							}
+							else
+							{
 								hitMax = true;
 								break;
 							}
 						}
 						// Accessors
-						for each (var a:XML in description.accessor){
-							if (suggesttext.numLines < maxSuggestions){
-								if(a.@name.indexOf(stre) == 0){
-									if (showTypes) type = ":" + a.@type;
+						for each (var a:XML in description.accessor)
+						{
+							if (suggesttext.numLines < maxSuggestions)
+							{
+								if(a.@name.indexOf(stre) == 0)
+								{
+									if (showTypes)
+										type = ":" + a.@type;
 									
 									cmdsuggest.push(a.@name);
 									suggesttext.appendText(a.@name + type + " (accessor)\n");
 									areSuggestions = true;
 								}
-							} else {
+							}
+							else
+							{
 								hitMax = true;
 								break;
 							}
 						}
 						// Methods / Functions
-						for each (var m:XML in description.method){
-							if (suggesttext.numLines < maxSuggestions){
-								if(m.@name.indexOf(stre) == 0){
-									if (showTypes) type = ":" + m.@returnType;
+						for each (var m:XML in description.method)
+						{
+							if (suggesttext.numLines < maxSuggestions)
+							{
+								if(m.@name.indexOf(stre) == 0)
+								{
+									if (showTypes)
+										type = ":" + m.@returnType;
 									
 									suggesttext.appendText(m.@name + "(");
 									areSuggestions = true;
 									// Parameters
-									if (m.parameter != undefined) {
-										for each (var p:XML in m.parameter){
+									if (m.parameter != undefined)
+									{
+										for each (var p:XML in m.parameter)
+										{
 											suggesttext.appendText(p.@type+",");
 										}
 										suggesttext.text = suggesttext.text.slice(0,suggesttext.text.length-1);
 										cmdsuggest.push(m.@name+"(");
-									} else {
+									}
+									else
+									{
 										cmdsuggest.push(m.@name+"();");
 									}
 									suggesttext.appendText(")" + type +"\n");
 								}
-							} else {
+							}
+							else
+							{
 								hitMax = true;
 								break;
 							}
@@ -410,22 +507,25 @@ package classes {
 					}
 					
 					// If there are suggestions
-					if (areSuggestions){
+					if (areSuggestions)
+					{
 						// if there were more then what can be displayed; add a last item called "..."
-						if (hitMax){
+						if (hitMax)
 							suggesttext.appendText("...");
-						}
+						
 						suggesttext.visible = true;
 						hpos = cmdsuggest.length;
 					}
 				}
-				catch(er:Error){
+				catch (er:Error)
+				{
 					// do nothing
 				}
 			}
 		}
 		
-		private function hidesuggestions():void {
+		private function hidesuggestions():void
+		{
 			suggesttext.visible = false;
 			suggesttext.text = "";
 			suggesttext.height = 20;
@@ -437,164 +537,280 @@ package classes {
 		//		Interpreting	//
 		/////////////////////////
 		
-		// Seperate commands (by ;) and interpet them
-		private function interpret(str:String):void {
-			if (str.indexOf(";") > 1){
+		// Seperate commands (by ;) and interpret them
+		public function eval(str:String):void
+		{
+			if (str.indexOf(";") > 1)
+			{
 				var c:Array = str.split(";");
-				for (var i:int = 0; i < c.length; i++){
-					
+				for (var i:int = 0; i < c.length; i++)
+				{
 					// if there's an x then look for x# and repeat for that #
-					if (c[i].indexOf("x") == 0){
+					if (c[i].indexOf("x") == 0)
+					{
 						c[i] = Number(c[i].slice(1,c[i].length));
-						for (var r:int = 1; r < c[i]; r++){
+						for (var r:int = 1; r < c[i]; r++)
 							interpretString(c[i-1]);
-						}
-					} else {
-						if (c[i] != "") interpretString(c[i]);
+					}
+					else if (c[i] != "")
+					{
+						 interpretString(c[i]);
 					}
 				}
-			} else {
+			}
+			else 
+			{
 				interpretString(str);
 			}
 		}
 		
 		// Interpret String/Command
-		private function interpretString(str:String):void {
+		private function interpretString(str:String):void
+		{
 			// Remove ';'s and spaces outside of quotes
 			str = stringReplaceAll(str, ";");
-			str = stringReplaceButExclude(str," ","\"","",false);
+			str = stringReplaceButExclude(str, " ", ["\""], "", [false]);
 			
-			// Assigning
-			if (str.indexOf("=") > 0){
-				var ar = str.split("=");
+			
+			if (str.indexOf("=") > 0)
+			{
+				// Assigning
+				var ar:Array = str.split("=");
 				ar = checkShorthandCalculations(ar);
 				ar[1] = stringToVarWithCalculation(ar[1]);
-				changeVar(ar[0],ar[1]);
-			} else 
-			// Calling functions
-			if (str.indexOf("(") > 0 && str.indexOf(")") > str.indexOf("(")){
-				if (returnFunctions){
-					var rtrn:String = stringToFunc(str);
-					if (rtrn != null) warn("returned: "+rtrn);
-				} else {
-					stringToFunc(str);
-				}
-			} else {
+				changeVar(ar[0], ar[1]);
+			}
+			else
+			{
 				// Console-only Commands and getVar
-				if (str.indexOf("trace:") == 0){
+				if (str.indexOf("trace:") == 0)
 					setTrace(str);
-				} else
-				if (str.indexOf("stoptrace:") == 0){
+				else if (str.indexOf("stoptrace:") == 0)
 					stopTrace(str);
-				} else {
-					switch(str){
-						case "clear": historytext.text = ""; break;
-						case "help": echo(help,"0099CC"); break;
-						case "author": echo(author,"0099CC"); break;
-						default: getVar(str); break;
+				else
+				{
+					switch (str)
+					{
+						case "clear"	: historytext.text = ""; 	break;
+						case "help"		: echo(help,"#0099CC"); 	break;
+						case "author"	: echo(author,"#0099CC"); 	break;
+						default			: getVar(str); 				break;
 					}
 				}
 			}
 		}
 		
 		// Echo var value / calculation
-		private function getVar(varname):void {
-			var rstring:String = varname + " is ";
+		private function getVar(varname:String):void
+		{
+			var rstring:String = varname + " returned ";
 
-			try {
-				rstring += stringToVarWithCalculation(varname);
+			try 
+			{
+				var value:* = stringToVarWithCalculation(varname);
+				
+				if (value == undefined)
+					return;
+				
+				rstring += value;
 				echo(rstring);
 			}
-			catch(er:Error){
+			catch (er:Error)
+			{
 				error(er.message);
 			}
 		}
 		
 		// Assign a value to a variable
-		private function changeVar(varname:String,vset):void {
-			try {
+		private function changeVar(varname:String, vset:*):void
+		{
+			try
+			{
 				// check if vset is an array
-				try {
-					vset = stringToArray(vset);
+				try
+				{
+					if (vset is String)
+						vset = stringToArray(vset);
 				}
-				catch(er:Error){
+				catch (er:Error)
+				{
 					// do nothing
 				}
 				
 				// check if vset is a boolean
-				if (vset == "true") vset = true;
-				if (vset == "false") vset = false;
+				if (vset == "true")
+					vset = true;
+				else if (vset == "false")
+					vset = false;
 				
-				// assign
-				var v:Array = varname.split(".");
+				// Assign
 				
-				var ob = main;
-				var tempAry; // for array items if needed
+					// change dots but leave dots inside array literals
+				var str:String = stringReplaceButExclude(varname,".",["[","]","(",")"],"`",[false,false,false,false]);
 				
-				for (var i:int = 0; i < v.length-1; i++){
-					if (v[i].indexOf("[") > -1){
+				var v:Array = str.split("`");
+				
+				var ob:* = main;
+				var tempAry:Array; // for array items if needed
+				
+				for (var i:int = 0; i < v.length-1; i++)
+				{
+					if (v[i].indexOf("[") > -1)
+					{
 						// if an Array Item
 						tempAry = stringToArrayItem(v[i]);
-						ob = ob[tempAry[0]][tempAry[1]];
-					} else {
+						
+						switch (tempAry.length)
+						{
+							case 4:  ob = ob[tempAry[0]][tempAry[1]][tempAry[2]][tempAry[3]]; break;
+							case 3:  ob = ob[tempAry[0]][tempAry[1]][tempAry[2]]; break;
+							default: ob = ob[tempAry[0]][tempAry[1]]; break;
+						}
+					}
+					else
+					{
 						ob = ob[v[i]];
 					}
 				}
 				
-				if (v[v.length-1].indexOf("[") > -1){
-					// if an Array Item
-					tempAry = stringToArrayItem(v[v.length-1]);
-					ob[tempAry[0]][tempAry[1]] = vset;
-				} else {
+				if (v[v.length-1].indexOf("[") == -1)
+				{
+						// Check for invalid value
+					if (ob[v[v.length - 1]] != null && !isNaN(ob[v[v.length - 1]]) && isNaN(vset))
+					{
+						warn("Invalid Value.");
+						return;
+					}
+					
 					ob[v[v.length-1]] = vset;
+					
+					echo(varname + " is now " + ob[v[v.length-1]]);
+				}
+				else
+				{
+					// if an Array Item
+					tempAry = stringToArrayItem(v[v.length - 1]);
+					
+					switch (tempAry.length)
+					{
+						case 4:  ob[tempAry[0]][tempAry[1]][tempAry[2]][tempAry[3]] = vset; break;
+						case 3:  ob[tempAry[0]][tempAry[1]][tempAry[2]] = vset; break;
+						default: ob[tempAry[0]][tempAry[1]] = vset; break;
+					}
 				}
 			}
-			catch(er:Error){
-				error(er.message);
+			catch (er:Error)
+			{
+				// Variable Does not exist
+				var index:int = tempVarNames.indexOf(v[0]);
+				if (index != -1)
+				{
+					// Change Temporary Variable
+					if (v.length != 1)
+					{
+						ob = tempVars[index];
+						for (i = 1; i < v.length-1; i++)
+							ob = ob[v[i]];
+						
+						ob[v[v.length - 1]] = vset;
+					}
+					else
+						tempVars[index] = vset;
+					
+					echo(varname + " is now " + vset);
+				}
+				else if (createVarsThatDontExist && v.length == 1)
+				{
+					// Create Temporary Variable
+					tempVarNames.push(v[0]);
+					tempVars.push(vset);
+					
+					warn("Temporary variable called \"" + v[0] + "\" created with the value " + vset);
+				}
+				else
+					error(er.message);
 			}
 		}
 		
 		// Covert a string to useable variable
-		private function stringToVar(str:String, leaveOutLast:Boolean = false):* {
-			var ob = str;
+		private function stringToVar(str:String, base:* = null, leaveOutLast:Boolean = false):*
+		{
+			if (base == null)
+				base = main;
+				
+			var ob:* = str;
 			
 			var lo:int = 0;
-			if (leaveOutLast) lo = 1; 
+			if (leaveOutLast)
+				lo = 1; 
 			
-			if (str.indexOf("\"") == -1 && isNaN(Number(str))){
-				var v:Array = str.split(".");
+			if (str.indexOf("\"") == -1 && isNaN(Number(str)))
+			{
+				// change dots but leave dots inside array literals
+				var splitString:String = stringReplaceButExclude(str, ".", ["[","]","(",")"], "`", [false,false,false,false]);
+			
+				var v:Array = splitString.split("`");
 				
-				try {
-					ob = main;
-					for (var i:int = 0; i < v.length-lo; i++){
-						if (v[i].indexOf("[") > -1){
-							// if an Array Item
-							var tempAry = stringToArrayItem(v[i]);
-							ob = ob[tempAry[0]][tempAry[1]];
-						} else {
+				try
+				{
+					ob = base;
+					for (var i:int = 0; i < v.length-lo; i++)
+					{
+						if (v[i].indexOf("[") == -1)
+						{
 							ob = ob[v[i]];
+						}
+						else
+						{
+							// if an Array Item
+							var tempAry:Array = stringToArrayItem(v[i]);
+							
+							switch (tempAry.length)
+							{
+								case 4: ob = ob[tempAry[0]][tempAry[1]][tempAry[2]][tempAry[3]]; break;
+								case 3: ob = ob[tempAry[0]][tempAry[1]][tempAry[2]]; break;
+								default: ob = ob[tempAry[0]][tempAry[1]]; break;
+							}
 						}
 					}
 				}
-				catch (e:Error){
+				catch (e:Error)
+				{
 					// failed? is it a class?
-					var cl = v[0];
-					for (i = 0; i < v.length; i++){
-						try {
+					var cl:* = v[0];
+					for (i = 0; i < v.length; i++)
+					{
+						try
+						{
 							ob = getDefinitionByName(cl) as Class;
 							break; // break out if it get's this far (if it's a class)
 						}
-						catch (e:Error) {
+						catch (e:Error)
+						{
 							cl = cl + "." + v[i+1];
 						}
 					}
-					if (ob is Class){
+					
+					if (ob is Class)
+					{
 						// member of class?
-						for (i++; i < v.length-lo; i++){
+						for (i++; i < v.length-lo; i++)
+						{
 							ob = ob[v[i]];
 						}
-					} else {
-						ob = str;
+					}
+					else
+					{
+						// temporary variable?
+						var index:int = tempVarNames.indexOf(v[0]);
+						if (index != -1)
+						{
+							ob = tempVars[index];
+							for (i = 1; i < v.length-lo; i++)
+								ob = ob[v[i]];
+						}
+						else
+							ob = str;
 					}
 				}
 			}
@@ -603,57 +819,122 @@ package classes {
 		}
 		
 		// Convert a string to a callable function
-		private function stringToFunc(str:String, setval:Boolean = false){
-			str = stringReplaceAll(str, ")");
-			var ar = str.split("(");
-			var pars;
+		private function stringToFunc(str:String, base:* = null, leaveOutLast:Boolean = false):*
+		{
+			var member:String = str.substring(str.indexOf(")") + 2);
+			str = str.substring(0, str.indexOf(")"));
 			
-			if (ar[1] == ""){
+			var fn:String = str.substring(0, str.indexOf("("));
+			var p:String = str.substring(str.indexOf("(") + 1);
+			
+			// get parameters
+			var pars:Array;
+			if (p == "")
 				pars = new Array();
-			} else {
-				pars = stringToPars(ar[1]);
+			else
+				pars = stringToPars(p);
+				
+			if (member == "")
+				return stringToVar(fn, base, leaveOutLast).apply(null,pars);
+			else
+				return stringToVarWithCalculation(member, stringToVar(fn).apply(null, pars), leaveOutLast);
+		}
+		
+		// Convert a string to a new instance
+		private function stringToNewInstance(str:String, allowError:Boolean = true):*
+		{
+			str = str.replace("new", "");
+			
+			str = stringReplaceAll(str, ")");
+			var cl:* = str;
+			var p:String = "";
+			if (str.indexOf("(") != -1)
+			{
+				cl = str.substring(0, str.indexOf("("));
+				p = str.substring(str.indexOf("(") + 1);
 			}
 			
-			if (!setval){
-				return stringToVar(ar[0]).apply(null,pars);
-			} else {
-				return stringToVar(ar[0]).apply(null,pars);
+			// get parameters
+			var pars:Array;
+			if (p == "")
+				pars = new Array();
+			else
+				pars = stringToPars(p);
+			
+			// get class
+			cl = stringToVar(cl);
+			
+			
+			var obj:*;
+			// If you want support for classes with constructors that have more than 10 parameters; just add more cases.
+			try
+			{
+				switch (pars.length)
+				{
+					case 1 : obj = new cl(pars[0]); break;
+					case 2 : obj = new cl(pars[0],pars[1]); break;
+					case 3 : obj = new cl(pars[0],pars[1],pars[2]); break;
+					case 4 : obj = new cl(pars[0],pars[1],pars[2],pars[3]); break;
+					case 5 : obj = new cl(pars[0],pars[1],pars[2],pars[3],pars[4]); break;
+					case 6 : obj = new cl(pars[0],pars[1],pars[2],pars[3],pars[4],pars[5]); break;
+					case 7 : obj = new cl(pars[0],pars[1],pars[2],pars[3],pars[4],pars[5],pars[6]); break;
+					case 8 : obj = new cl(pars[0],pars[1],pars[2],pars[3],pars[4],pars[5],pars[6],pars[7]); break;
+					case 9 : obj = new cl(pars[0],pars[1],pars[2],pars[3],pars[4],pars[5],pars[6],pars[7],pars[8]); break;
+					case 10: obj = new cl(pars[0],pars[1],pars[2],pars[3],pars[4],pars[5],pars[6],pars[7],pars[8],pars[9]); break;
+					case 11: obj = new cl(pars[0],pars[1],pars[2],pars[3],pars[4],pars[5],pars[6],pars[7],pars[8],pars[9],pars[10]); break;
+					default: obj = new cl(); break;
+				}
 			}
+			catch(e:Error)
+			{
+				if (!allowError)
+					error(e.message);
+			}
+			
+			return obj;
 		}
 		
 		// Convert a string into an array of parameters/arguments
-		private function stringToPars(str:String):Array {
+		private function stringToPars(str:String):Array
+		{
 			// change commas but leave commas inside array literals
 			str = str.replace("[","|");
 			str = str.replace("]","|");
-			str = stringReplaceButExclude(str,",","|","`");
+			str = stringReplaceButExclude(str,",",["|","(",")"],"`",[true,false,false]);
 			// split the parameters
-			var pars = str.split("`");
+			var pars:Array = str.split("`");
 			
 			// Convert pars to vals/funcs if they are
-			for (var i:int = 0; i < pars.length; i++){
-				try {
+			for (var i:int = 0; i < pars.length; i++)
+			{
+				try
+				{
 					pars[i] = stringToVarWithCalculation(pars[i]);
 					
 					// convert to array if nessesary
-					if (pars[i].indexOf(",") > -1){
+					if (pars[i].indexOf(",") > -1)
 						pars[i] = stringToArray(pars[i],false);
-					}
 				}
-				catch (er:Error){
+				catch (er:Error)
+				{
 					// do nothing
 				}
 			}
+			
 			return pars;
 		}
 		
 		// Convert a string into an array
-		private function stringToArray(str,needSquareBrackets:Boolean = true):* {
-			var res;
+		private function stringToArray(str:String, needSquareBrackets:Boolean = true):*
+		{
+			var res:Array;
 			
 			// if there's square brackets - remove them and convert
-			if (str.indexOf("[") == 0 && str.lastIndexOf("]") == str.length-1 || !needSquareBrackets){
-				if (needSquareBrackets) str = str.substr(1,str.length-2); // remove brackets
+			if (str.indexOf("[") == 0 && str.lastIndexOf("]") == str.length-1 || !needSquareBrackets)
+			{
+				// remove brackets
+				if (needSquareBrackets)
+					str = str.substr(1,str.length-2);
 				res = str.split(",");
 				
 				for (var i:int = 0; i < res.length; i++){
@@ -665,7 +946,9 @@ package classes {
 					}
 				}
 				
-			} else {
+			}
+			else
+			{
 				// if there was no square brackets and they were needed - just convert it to a var
 				res = stringToVarWithCalculation(res);
 			}
@@ -674,50 +957,89 @@ package classes {
 		}
 		
 		// Conver a string into an array item
-		private function stringToArrayItem(str):* {
-			var res = str;
+		private function stringToArrayItem(str:String):*
+		{
+			var res:* = str;
 			
 			// if there's square brackets - convert to array item
-			if (str.indexOf("[") > -1 && str.lastIndexOf("]") == str.length-1){
-				str = str.substr(0,str.length-1); // remove last bracket
+			if (str.indexOf("[") > -1 && str.lastIndexOf("]") == str.length-1)
+			{
+				str = stringReplaceAll(str, "]"); // remove close square brackets
 				res = str.split("[");
-				res[1] = Number(res[1]); // convert given index to number
+				
+				for (var i:uint = 1; i < res.length; i++)
+					res[i] = stringToVarWithCalculation(res[i]);
 			}
 			
 			return res;
 		}
 		
 		// Convert to vars/func returns and do calucations with them
-		private function stringToVarWithCalculation(str):* {
-			if (str == "this"){
+		private function stringToVarWithCalculation(str:*, base:* = null, leaveOutLast:Boolean = false):*
+		{
+			if (str == "this")
 				return main;
-			} else
-			if (str == "true"){
+			else if (str == "true")
 				return true;
-			} else
-			if (str == "false"){
+			else if (str == "false")
 				return false;
-			} else
-			if (containsOperators(str)){
+			else if (containsOperators(str,"[","]") && containsOperators(str,"(",")"))
+			{
+				// Contains Math Operators that are not inside "[]"
 				var operatorOrder:Array = new Array();
 				var n:int = 0;
 				
 				var temp:String = "";
 				var inExl:Boolean = false;
+				var currExlList:Array = new Array();
 				var foundOperator:Boolean;
-				var operators:Array = new Array("-","+","/","*","%");
+				var foundExl:uint = 0;
+				var operators:Array = ["-", "+", "/", "*", "%"];
+				var exls:Array = [["\"", "\""], ["[", "]"], ["(", ")"]]; // Don't do calculations inside these (for now)
 				
-				for (var i:int = 0; i < str.length; i++){
+				for (var i:uint = 0; i < str.length; i++)
+				{
 					foundOperator = false;
+					foundExl = 0;
 					
-					if (str.charAt(i) == "\""){ // doesn't do calculations in quotations
-						inExl = !inExl;
-					} else {
-						if (!inExl){
+					// Check for exclusions
+					for (var e:uint = 0; e < exls.length; e++)
+					{
+						if (str.charAt(i) == exls[e][0])
+						{
+							foundExl = 1;
+							break;
+						}
+						else if (str.charAt(i) == exls[e][1])
+						{
+							foundExl = 2;
+							break;
+						}
+					}
+					
+					if (foundExl != 0)
+					{
+						if (currExlList.length == 0 || foundExl == 1)
+							inExl = true;
+						else if (currExlList[currExlList.length-1] == exls[e][0])
+						{
+							// close if foundExl is 2 (exl close) and the last exl was the open one
+							inExl = false;
+							currExlList.pop();
+						}
+						
+						currExlList.push( str.charAt(i) );
+					}
+					else
+					{
+						if (!inExl)
+						{
 							var op:int = 0;
 							
-							while (!foundOperator && op < operators.length){
-								if (str.charAt(i) == operators[op]){
+							while (!foundOperator && op < operators.length)
+							{
+								if (str.charAt(i) == operators[op])
+								{
 									foundOperator = true;
 									
 									operatorOrder[n] = op;
@@ -727,11 +1049,10 @@ package classes {
 							}
 						}
 						
-						if (foundOperator){
+						if (foundOperator)
 							temp += "`"; // replace operator with ` for spliting
-						} else {
+						else
 							temp += str.charAt(i);
-						}
 					}
 				}
 				str = temp;
@@ -740,27 +1061,23 @@ package classes {
 				var t:Array = str.split("`");
 				
 				// Convert to vars/functions if they are
-				for (var c:int = 0; c < t.length; c++){
-					if (!isNaN(t[c])){
+				for (var c:int = 0; c < t.length; c++)
+				{
+					if (!isNaN(t[c]))
 						t[c] = Number(t[c]);
-					} else
-					if (t[c].indexOf("(") > 0 && t[c].indexOf(")") > 0){
-						t[c] = stringToFunc(t[c],true);
-					} else {
-						try {
-							t[c] = stringToVar(t[c]);
-						}
-						catch (e:Error){
-							
-						}
-					}
+					else if (t[c].indexOf("(") > 0)
+						t[c] = stringToFunc(t[c], base, leaveOutLast);
+					else
+						t[c] = stringToVar(t[c], base, leaveOutLast);
 				}
 				
 				// Calculate
 				str = t[0];
 				n = 0;
-				for (var o:int = 1; o < t.length; o++){
-					switch (operatorOrder[n]){
+				for (var o:int = 1; o < t.length; o++)
+				{
+					switch (operatorOrder[n])
+					{
 						case 0: str -= t[o]; break;
 						case 1: str += t[o]; break;
 						case 2: str /= t[o]; break;
@@ -769,17 +1086,22 @@ package classes {
 					}
 					n++;
 				}
-			} else {
+			}
+			else
+			{
 				// If no operators - just convert to var or func
 				str = stringReplaceAll(str,"\"");
-				try {
-					if (str.indexOf("(") > 0 && str.indexOf(")") > str.indexOf("(")){
-						str = stringToFunc(str,true);
-					} else {
-						str = stringToVar(str);
-					}
+				try
+				{
+					if (str.indexOf("new") == 0)
+						str = stringToNewInstance(str, leaveOutLast);
+					else if (str.indexOf("(") > 0)
+						str = stringToFunc(str, base, leaveOutLast);
+					else
+						str = stringToVar(str, base, leaveOutLast);
 				}
-				catch (er:Error){
+				catch (er:Error)
+				{
 					// do nothing
 				}
 			}
@@ -788,105 +1110,234 @@ package classes {
 		}
 		
 		
-		private function checkShorthandCalculations(ar:Array):Array {
+		private function checkShorthandCalculations(ar:Array):Array
+		{
 			if (ar[0].indexOf("+") == ar[0].length-1 || ar[0].indexOf("-") == ar[0].length-1 ||
 				ar[0].indexOf("/") == ar[0].length-1 || ar[0].indexOf("*") == ar[0].length-1 ||
-				ar[0].indexOf("%") == ar[0].length-1){
+				ar[0].indexOf("%") == ar[0].length-1)
+			{
 				ar[1] = ar[0] + ar[1];
 				ar[0] = ar[0].substr(0,ar[0].length-1);
 			}
+			
 			return ar;
 		}
 		
-		private function containsOperators(str):Boolean {
-			return str.indexOf("+") > -1 || str.indexOf("-") > -1 || str.indexOf("/") > -1 || str.indexOf("*") > -1 || str.indexOf("%") > -1;
+		private function containsOperators(str:String, before:String = "", after:String = ""):Boolean
+		{
+			var operators:Array = new Array("+","-","/","*","%");
+			
+			for (var i:int = 0; i < operators.length; i++)
+			{
+				var index:int = str.indexOf(operators[i]);
+				
+				if (index != -1 && (before == "" || index < str.indexOf(before) || str.indexOf(before) == -1) && (after == "" || index > str.indexOf(after)) )
+					return true;
+			}
+			
+			return false;
 		}
 		
 		//////////////////////////
 		//	  Misc Functions	//
 		/////////////////////////
 		
-			// Messages
-		public function echo(str, colour:String = "FFFFFF"):void {
-			historytext.htmlText = historytext.htmlText + "<font color=\"#"+ colour +"\">" + str + "</font>\n";
+		// Messages
+		public function echo(... args):void
+		{
+			// Check for Colour
+			var colour:String;
+			if (args[args.length - 1] is String && args[args.length - 1].charAt(0) == "#")
+			{
+				colour = args[args.length - 1];
+				args.pop();
+			}
+			else
+				colour = "#FFFFFF";
+			
+			// Seperate arguments with ", "
+			var str:String = "";
+			for (var i:uint = 0; i < args.length; i++)
+			{
+				str += args[i];
+				if (i < args.length - 1)
+					str += " ";
+			}
+				
+			historytext.htmlText += "<font color=\"" + colour +"\">" + str + "</font>\n";
 			historytext.scrollV = historytext.maxScrollV;
 		}
-		public function error(str):void {
-			echo(str,"FF0000");
+		public function error(... args):void
+		{
+			args.push( "#FF0000" );
+			echo.apply(null, args);
 		}
-		public function warn(str):void {
-			echo(str,"0000FF");
+		public function warn(... args):void
+		{
+			args.push( "#00CCFF" );
+			echo.apply(null, args);
 		}
 		
-			// Common String related functions
-		private function stringReplaceAll(str:String, r:String, rw:String = ""):String {
-			do {
+		// Common String related functions
+		private function stringReplaceAll(str:String, r:String, rw:String = ""):String
+		{
+			do
+			{
 				str = str.replace(r,rw);
 			}
-			while(str.indexOf(r) > - 1);
+			while (str.indexOf(r) > - 1);
 			
 			return str;
 		}
 		
-		private function stringReplaceButExclude(str:String, r:String, exl:String, rw:String = "", removeExls:Boolean = true):String {
-			// Replaces all 'r's in a string with 'rw' excluding 'r's inside 'exl's
+		private function stringReplaceButExclude(str:String, r:String, exclude:Array, rw:String, removeExls:Array):String
+		{
+			// Replaces all 'r's in a string with 'rw' excluding 'r's inside 'exclude's
 			var temp:String = "";
 			
-			if (str.indexOf(exl) > -1){
+			if (stringContains(str,exclude))
+			{
 				var inExl:Boolean = false;
 				
-				for (var i:int = 0; i < str.length; i++){
-					if (str.charAt(i) == exl){
+				for (var i:int = 0; i < str.length; i++)
+				{
+					if (charIsAnyOf(str.charAt(i),exclude))
+					{
 						inExl = !inExl;
-						if (!removeExls) temp += exl;
-					} else
-					if (str.charAt(i) == r && !inExl){
+						if ( !removeExls[ exclude.indexOf(str.charAt(i)) ] ) temp += str.charAt(i);
+					}
+					else if (str.charAt(i) == r && !inExl)
+					{
 						temp += rw;
-					} else {
+					}
+					else
+					{
 						temp += str.charAt(i);
 					}
 				}
-			} else {
+			}
+			else
+			{
 				temp = stringReplaceAll(str, r, rw);
 			}
 			return temp;
 		}
 		
-		private function fillArrayWithIndexsOf(ar:Array, str:String, ar2:Array, startIndex:int = -1):Array {
-			if (ar == null) ar = new Array();
-			if (startIndex == -1) startIndex = str.length-1;
+		private function stringContains(str:String, what:Array):Boolean
+		{
+			for (var i:int = 0; i < what.length; i++)
+			{
+				if (str.indexOf(what[i]) > -1)
+					return true;
+			}
+			return false;
+		}
+		
+		private function charIsAnyOf(char:String, what:Array):Boolean
+		{
+			for (var i:int = 0; i < what.length; i++)
+			{
+				if (char == what[i])
+					return true;
+			}
+			return false;
+		}
+		
+		private function fillArrayWithIndexsOf(ar:Array, str:String, ar2:Array, startIndex:int = -1):Array
+		{
+			if (ar == null)
+				ar = new Array();
+			if (startIndex == -1)
+				startIndex = str.length-1;
 			
-			for (var i:int = 0; i < ar2.length; i++){
+			for (var i:int = 0; i < ar2.length; i++)
+			{
 				ar[i] = str.lastIndexOf(ar2[i],startIndex);
 			}
 			
 			return ar;
 		}
 		
-		private function characterCount(str:String, char:String):int {
+		private function characterCount(str:String, char:String):int
+		{
 			var count:int = 0;
-			for (var i:int = 0; i < str.length; i++){
-				if (str.charAt(i) == char) count++;
+			for (var i:int = 0; i < str.length; i++)
+			{
+				if (str.charAt(i) == char)
+					count++;
 			}
 			return count;
+		}
+		
+		//////////////////////////
+		//	  Slide Animation	//
+		/////////////////////////
+		
+		private function startSlideAnimation(open:Boolean):void
+		{
+			main.addEventListener(Event.ENTER_FRAME, slide);
+			slideAnimation_animating = true;
+			
+			if (open)
+			{
+				slideAnimation_target = 0;
+			}
+			else
+			{
+				container.visible = true;
+			
+				slideAnimation_target = -historytext.height - inputtext.height;
+			}
+		}
+		private function stopSlideAnimation():void
+		{
+			container.y = slideAnimation_target;
+			
+			main.removeEventListener(Event.ENTER_FRAME, slide);
+			slideAnimation_animating = false;
+		}
+		
+		private function slide(e:Event):void
+		{
+			if (container.y <= slideAnimation_target)
+			{
+				container.y += slideAnimation_speed;
+				
+				// Stop
+				if (container.y >= slideAnimation_target)
+				{
+					stopSlideAnimation();
+				}
+			}
+			else if (container.y >= slideAnimation_target)
+			{
+				container.y -= slideAnimation_speed;
+				
+				// Stop
+				if (container.y <= slideAnimation_target)
+				{
+					stopSlideAnimation();
+					container.visible = false;
+				}
+			}
 		}
 		
 		//////////////////////////
 		//		  Tracer		//
 		/////////////////////////
 		
-		private function setTrace(str:String){
+		private function setTrace(str:String):void
+		{
 			var originalLength:int = traceVars.length;
 			
 			str = str.replace("trace:","");
 			
-			if (str == "fps"){
+			if (str == "fps")
 				addEventListener(Event.ENTER_FRAME, tick);
-				str = "console.fps";
-			}
 			
 			var v:Array = str.split(",");
-			for (var n:int = 0; n < v.length; n++){
+			for (var n:int = 0; n < v.length; n++)
+			{
 				if (traceVars.indexOf(v[n]) == -1)
 					traceVars.push(v[n]);
 			}
@@ -895,98 +1346,122 @@ package classes {
 				tracer.addEventListener(Event.ENTER_FRAME, traceUpdate);
 		}
 		
-		private function stopTrace(str:String){
+		private function stopTrace(str:String):void
+		{
 			str = str.replace("stoptrace:","");
 			
-			if (str == "fps"){
-				removeEventListener(Event.ENTER_FRAME, tick);
-			} else
-			if (str == "all"){
+			// remove event listener for fps
+			removeEventListener(Event.ENTER_FRAME, tick);
+			
+			if (str == "all")
+			{
 				traceVars = new Array();
-			} else {
+			}
+			else
+			{
 				var v:Array = str.split(",");
-				for (var n:int = 0; n < v.length; n++){
-					for (var i:int = 0; i < traceVars.length; i++){
+				for (var n:int = 0; n < v.length; n++)
+				{
+					for (var i:int = 0; i < traceVars.length; i++)
+					{
 						if (traceVars[i] == v[n]) traceVars.splice(i,1);
 					}
 				}
 			}
 			
-			if (traceVars.length == 0){
+			if (traceVars.length == 0)
+			{
 				tracer.removeEventListener(Event.ENTER_FRAME, traceUpdate);
 				tracer.visible = false;
 				tracerNames.visible = false;
 			}
 		}
 		
-		private function traceUpdate(e:Event){
+		private function traceUpdate(e:Event):void
+		{
 			var na:String;
 			
 			// actual trace
-			if (tracerActualTrace){
-				if (tracerOneCiclePerLine) var completeOutput:String = "";
+			if (tracerActualTrace)
+			{
+				if (tracerOneCiclePerLine)
+					var completeOutput:String = "";
 				
-				for (var t:int = 0; t < traceVars.length; t++){
-					if (traceVars[t] != "console.fps" || tracerActualTraceFPS){
-						
+				for (var i:uint = 0; i < traceVars.length; i++)
+				{
+					if (traceVars[i] != "fps" || tracerActualTraceFPS)
+					{	
 						var output:String = tracerActualTraceLayout;
 						
 						na = traceVars[i];
-						if (na == "console.fps") na = "fps";
 						
-						output = output.replace("name",na);
-						output = output.replace("value",stringToVarWithCalculation(traceVars[t]));
+						output = output.replace("name", na);
 						
-						if (!tracerOneCiclePerLine){
+						if (na == "fps")
+							output = output.replace("value", fps);
+						else
+							output = output.replace("value", stringToVarWithCalculation(traceVars[i]));
+						
+						if (!tracerOneCiclePerLine)
 							trace(output);
-						} else {
+						else
 							completeOutput += output + tracerOneCiclePerLine_seperator;
-						}
-						
 					}
 				}
 				
-				if (tracerOneCiclePerLine) trace(completeOutput);
+				if (tracerOneCiclePerLine)
+					trace(completeOutput);
 			}
 			
 			// tracer table
-			if (tracerView){
+			if (tracerView)
+			{
 				tracer.visible = true;
 				tracerNames.visible = true;
 				tracer.text = "";
 				tracerNames.text = "";
 				
-				for (var i:int = 0; i < traceVars.length; i++){
+				for (i = 0; i < traceVars.length; i++)
+				{
 					na = traceVars[i];
 					
-					if (na == "console.fps") na = "fps";
-					
 					tracerNames.appendText(na + "\n");
-					tracer.appendText(stringToVarWithCalculation(traceVars[i]) + "\n");
+					
+					if (na == "fps")
+						tracer.appendText(fps + "\n");
+					else
+						tracer.appendText(stringToVarWithCalculation(traceVars[i]) + "\n");
 				}
 				
 				// position				
 				tracerNames.x = tracerAlignX - tracerNames.width;
 				tracer.x = tracerNames.x - tracer.width - 10;
-				if (visible && tracerAlignY < consoleheight+inputtext.height){
-					tracer.y = 10 + inputtext.y + inputtext.height;
-					tracerNames.y = 10 +inputtext.y + inputtext.height;
-				} else {
+				if (tracerAlignY < historytext.height + inputtext.height)
+				{
+					tracer.y 	  = container.y + inputtext.y + inputtext.height + tracerAlignY;
+					tracerNames.y = container.y + inputtext.y + inputtext.height + tracerAlignY;
+				}
+				else
+				{
 					tracer.y = tracerAlignY;
 					tracerNames.y = tracerAlignY;
 				}
-			} else {
+			}
+			else
+			{
 				tracer.visible = false;
 				tracerNames.visible = false;
 			}
 		}
 		
 		// FPS Counter
-		private function tick(e:Event):void {
+		private function tick(e:Event):void
+		{
             ticks++;
             var now:uint = getTimer();
             var delta:uint = now - last;
-            if (delta >= 1000) {
+            if (delta >= 1000)
+			{
                 var f:Number = ticks / delta * 1000;
 				fps = f.toFixed(1);
                 ticks = 0;
