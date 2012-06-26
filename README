@@ -12,3 +12,4 @@ Features:
 - Multiplying Commands: Put an x plus a number after a command to repeat it that many times (e.g: spawnEnemy();x5)
 - Tracer: Tracer things easily with the Tracer table and/or the built in trace().
 - FPS Counter: See what your current FPS is using the Tracer.
+- Temporary Variables: Create and use variables through the console
