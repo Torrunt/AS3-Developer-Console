@@ -17,18 +17,18 @@ http://torrunt.net
 
 Features
 --------
-- The ability to access/use any public function or variable in your project!
-- The ability to access/use imported classes and their static functions and variables!
+- The ability to access/use any public function or variable in your project
+- The ability to access/use imported classes and their static functions and variables
 - Auto-complete/ Suggestions (use up/down keys to cycle through them)
 - Used commands History (use up/down to cycle through them when the auto-complete box is NOT showing)
-- Calculations (+,-,/,*,%)
-- Shorthand calculations (+=,-=,/=,etc)
-- Echo function with multiple colours!
-- Ability to do multiple commands at once (e.g: function(); something += 2; function2();)
-- Multiplying Commands: Put an x plus a number after a command to repeat it that many times (e.g: spawnEnemy();x5)
-- Tracer: Tracer things easily with the Tracer table and/or the built in trace().
-- FPS Counter: See what your current FPS is using the Tracer.
-- Temporary Variables: Create and use variables through the console
+- Calculations (+,-,/,*,%).
+- Shorthand calculations (+=, -=, /=, *=, %=)
+- Echo function with custom colours as well as error and warn functions
+- Ability to enter multiple commands at once (eg: function(); something += 2; function2();)
+- Multiplying Commands: Put an x and a number after a command to repeat it that many times (eg: spawnEnemy();x5)
+- Tracer: Trace things easily with the Tracer table and/or the built in trace()
+- FPS Counter: See what your current FPS is using the Tracer (trace:fps)
+- Temporary Variables: Create and use temporary variables through the console
 
 Install
 --------
