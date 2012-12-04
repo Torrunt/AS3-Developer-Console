@@ -19,24 +19,43 @@ package
 	import flash.utils.getDefinitionByName;
 	import flash.utils.getTimer;
 	
-	public class developerconsole extends Sprite
+	public class DeveloperConsole extends Sprite
 	{
 		
 		// Customisation (to customise look go to the constructor)
-		public var consoleHeight:Number				= 145;		// height of the console
-		public var maxSuggestions:int				= 14;		// max suggestions that can be shown at once
+		
+		/** Height (in pixels) of the developer console. */
+		public var consoleHeight:Number				= 145;
+		/** The max amount of suggestions that can be shown in the suggestion drop-down. */
+		public var maxSuggestions:int				= 14;
+		/** If true, The data/return types of variables and functions are shown in the suggestion drop-down. */
 		public var showTypes:Boolean 				= true;		// show data/return types of vars and functions
 		
-		public var createVarsThatDontExist:Boolean	= true;		// when assigning and the variable doesn't exist, create it. (will not create member variables)
+		/** If true, when assigning variables that don't exist, they will be created as a temporary variable (can't be a member var). */
+		public var createVarsThatDontExist:Boolean	= true;
 		
-		public var slideAnimation:Boolean			= true;		// sliding animation when opening / closing
+		/** If true, when the console is opened/closed a sliding animation is played. */
+		public var slideAnimation:Boolean			= true;
+		/** The speed of the sliding open/close animation, if slideAnimation is true. */
 		public var slideAnimation_speed:Number 		= 15;
 		
-		public var tracerView:Boolean 				= true;		// show the tracer table when using the tracer
-		public var tracerActualTrace:Boolean 		= true;		// use as3's trace() function when using the tracer	(IDE Output)
-		public var tracerActualTraceFPS:Boolean 	= false;	// use as3's trace() function when using the tracer for fps
+		/** If true, the tracer table is shown while tracing. */
+		public var tracerView:Boolean 				= true;
+		/** If true, as3's trace() function is called when using the tracer	(IDE Output). */
+		public var tracerActualTrace:Boolean 		= true;
+		/** If true, as3's trace() function is called when the tracer is tracing the fps */
+		public var tracerActualTraceFPS:Boolean 	= false;
+		/** 
+		 * The layout of a trace when it is in the IDE Output. 
+		 * Default: "name : value"
+		 */
 		public var tracerActualTraceLayout:String 	= "name : value";
-		public var tracerOneCiclePerLine:Boolean 	= true;		// makes everything traced in one cicle only apear on one line
+		/** If true, everything traced by the tracer into the IDE Output is placed on a single line. */
+		public var tracerOneCiclePerLine:Boolean 	= true;
+		/**
+		 * If tracerOneCiclePerLine is true, this string is placed inbetween each traced item. 
+		 * Default: "   "
+		 */
 		public var tracerOneCiclePerLine_seperator:String = "   ";
 		
 		
@@ -49,12 +68,12 @@ package
 		private var opened:Boolean = false;
 	
 		private var container:Sprite = new Sprite();
-		private var suggesttext:TextField;
+		private var suggestText:TextField;
 		private var consoleTextFormat:TextFormat;
-		private var historytext:TextField;
-		private var inputtext:TextField;
+		private var historyText:TextField;
+		private var inputText:TextField;
 		
-		private var cmdsuggest:Array = new Array();
+		private var cmdSuggest:Array = new Array();
 		private var cmdhistory:Array = new Array();
 		private var cicle:Array;
 		private var hpos:int = -1;
@@ -80,7 +99,7 @@ package
         private var ticks:uint = 0;
 		
 		// Constructor
-		public function developerconsole(_main:*)
+		public function DeveloperConsole(_main:*)
 		{
 			main = _main;	// Start off point for seeing/using variables and functions (main class or frame/stage)
 			
@@ -94,47 +113,47 @@ package
 			consoleTextFormat.color = 0xFFFFFF;
 			
 				// History Textbox
-			historytext = new TextField();
-			container.addChild(historytext);
+			historyText = new TextField();
+			container.addChild(historyText);
 			
-			historytext.width = main.stage.stageWidth;
-			historytext.height = consoleHeight - 20;
-			historytext.alpha = 0.85;
-			historytext.selectable = false;
-			historytext.multiline = true;
-			historytext.wordWrap = true;
-			historytext.defaultTextFormat = consoleTextFormat;
-			historytext.background = true;
-			historytext.backgroundColor = 0x000000;
+			historyText.width = main.stage.stageWidth;
+			historyText.height = consoleHeight - 20;
+			historyText.alpha = 0.85;
+			historyText.selectable = false;
+			historyText.multiline = true;
+			historyText.wordWrap = true;
+			historyText.defaultTextFormat = consoleTextFormat;
+			historyText.background = true;
+			historyText.backgroundColor = 0x000000;
 			
 				// Input Textbox
-			inputtext = new TextField();
-			inputtext.type = TextFieldType.INPUT;
-			container.addChild(inputtext);
+			inputText = new TextField();
+			inputText.type = TextFieldType.INPUT;
+			container.addChild(inputText);
 			
-			inputtext.width = main.stage.stageWidth;
-			inputtext.height = 21;
-			inputtext.y = historytext.height;
-			inputtext.x = 0;
-			inputtext.alpha = 0.85;
-			inputtext.defaultTextFormat = consoleTextFormat;
-			inputtext.background = true;
-			inputtext.backgroundColor = 0x4B4B4B;
+			inputText.width = main.stage.stageWidth;
+			inputText.height = 21;
+			inputText.y = historyText.height;
+			inputText.x = 0;
+			inputText.alpha = 0.85;
+			inputText.defaultTextFormat = consoleTextFormat;
+			inputText.background = true;
+			inputText.backgroundColor = 0x4B4B4B;
 			
 				// Suggest/auto-complete Textbox
-			suggesttext = new TextField();
-			container.addChild(suggesttext);
+			suggestText = new TextField();
+			container.addChild(suggestText);
 			
-			suggesttext.width = 150;
-			suggesttext.height = 20;
-			suggesttext.y = inputtext.y + inputtext.height;
-			suggesttext.alpha = 0.85;
-			suggesttext.selectable = false;
-			suggesttext.defaultTextFormat = consoleTextFormat;
-			suggesttext.background = true;
-			suggesttext.backgroundColor = 0x000000;
-			suggesttext.autoSize = TextFieldAutoSize.LEFT;
-			suggesttext.visible = false;
+			suggestText.width = 150;
+			suggestText.height = 20;
+			suggestText.y = inputText.y + inputText.height;
+			suggestText.alpha = 0.85;
+			suggestText.selectable = false;
+			suggestText.defaultTextFormat = consoleTextFormat;
+			suggestText.background = true;
+			suggestText.backgroundColor = 0x000000;
+			suggestText.autoSize = TextFieldAutoSize.LEFT;
+			suggestText.visible = false;
 			
 				// Tracer
 			tracerAlignX = main.stage.stageWidth - 5;
@@ -172,7 +191,7 @@ package
 			
 			// Animation start position
 			if (slideAnimation)
-				container.y = -historytext.height - inputtext.height;
+				container.y = -historyText.height - inputText.height;
 			
 			// Hide self
 			container.visible = false;
@@ -189,11 +208,11 @@ package
 			
 			container.visible = true;
 			opened = true;
-			main.stage.focus = inputtext;
+			main.stage.focus = inputText;
 			
-			main.stage.addEventListener(KeyboardEvent.KEY_UP, keyup);
-			main.stage.addEventListener(KeyboardEvent.KEY_DOWN, keydown);
-			inputtext.addEventListener(TextEvent.TEXT_INPUT,typed);
+			main.stage.addEventListener(KeyboardEvent.KEY_UP, keyUp);
+			main.stage.addEventListener(KeyboardEvent.KEY_DOWN, keyDown);
+			inputText.addEventListener(TextEvent.TEXT_INPUT, onTextInput);
 			
 			
 			// animation
@@ -208,12 +227,12 @@ package
 				
 			container.visible = false;
 			opened = false;
-			inputtext.text = "";
+			inputText.text = "";
 			hpos = -1;
 			
-			main.stage.removeEventListener(KeyboardEvent.KEY_UP, keyup);
-			main.stage.removeEventListener(KeyboardEvent.KEY_DOWN, keydown);
-			inputtext.removeEventListener(TextEvent.TEXT_INPUT, typed);
+			main.stage.removeEventListener(KeyboardEvent.KEY_UP, keyUp);
+			main.stage.removeEventListener(KeyboardEvent.KEY_DOWN, keyDown);
+			inputText.removeEventListener(TextEvent.TEXT_INPUT, onTextInput);
 			
 			
 			// animation
@@ -221,6 +240,7 @@ package
 				startSlideAnimation(false);
 		}
 		
+		/** Open/Close the developer console. */
 		public function toggle():void
 		{
 			if (opened)
@@ -237,38 +257,38 @@ package
 		
 		private var pressedUp:Boolean = false;
 		
-		private function keydown(e:KeyboardEvent):void
+		private function keyDown(e:KeyboardEvent):void
 		{
 			// Enter
-			if (e.keyCode == 13 && inputtext.text != "")
+			if (e.keyCode == 13 && inputText.text != "")
 			{
-				echo(inputtext.text, "#999999");
+				echo(inputText.text, "#999999");
 				
-				if (cmdhistory[cmdhistory.length-1] != inputtext.text){
-					cmdhistory.push(inputtext.text);
+				if (cmdhistory[cmdhistory.length - 1] != inputText.text)
+				{
+					cmdhistory.push(inputText.text);
 					hpos = -1;
 				}
 				
-				eval(inputtext.text);
+				eval(inputText.text);
 				
-				inputtext.text = "";
-				hidesuggestions();
+				inputText.text = "";
+				hideSuggestions();
 			}
 			
 			// Backspace
 			if (e.keyCode == 8)
 			{
-				if(inputtext.length-1 <= 0){
-					hidesuggestions();
-				} else {
-					showsuggestions(inputtext.text.substr(0,inputtext.length-1));
-				}
+				if (inputText.length-1 <= 0)
+					hideSuggestions();
+				else
+					showSuggestions(inputText.text.substr(0,inputText.length-1));
 			}
 			
 			// Up and Down
 				// Pick array to go through
-			if (suggesttext.visible)
-				cicle = cmdsuggest;
+			if (suggestText.visible)
+				cicle = cmdSuggest;
 			else
 				cicle = cmdhistory;
 			
@@ -289,7 +309,7 @@ package
 				}
 				else if (cicle == cmdhistory)
 				{
-					inputtext.text = "";
+					inputText.text = "";
 					hpos = -1;
 				}
 			}
@@ -297,22 +317,19 @@ package
 			// Scrolling Up and Down
 				// Page Up
 			if (e.keyCode == 33)
-			{
-				historytext.scrollV--;
-			}
+				historyText.scrollV--;
+			
 				// Page Down
 			if (e.keyCode == 34)
-			{
-				historytext.scrollV++;
-			}
+				historyText.scrollV++;
 		}
 		
 			// Fix cursor position if you press up when moving through history or suggestions
-		private function keyup(e:KeyboardEvent):void
+		private function keyUp(e:KeyboardEvent):void
 		{
 			if (pressedUp)
 			{
-				inputtext.setSelection(inputtext.length,inputtext.length);
+				inputText.setSelection(inputText.length,inputText.length);
 				pressedUp = false;
 			}
 		}
@@ -321,17 +338,15 @@ package
 		private function changeInputbox():void
 		{
 			// If going through suggestions: just replace the thing you're currently writing
-			if (cicle == cmdsuggest)
+			if (cicle == cmdSuggest)
 			{
 				// if last suggestion added a '();' at the end - remove it
-				if (inputtext.text.lastIndexOf("();")+3 == inputtext.length)
-				{
-					inputtext.text = inputtext.text.substr(0,inputtext.length-3);
-				}
+				if (inputText.text.lastIndexOf("();")+3 == inputText.length)
+					inputText.text = inputText.text.substr(0,inputText.length-3);
 				
 				// Remove text after last symbol or space
 					// get indexs of symbols
-				var symbols:Array = fillArrayWithIndexsOf(symbols,inputtext.text,["."," ","(",",","-","+","/","*","%",";",":","["]);
+				var symbols:Array = fillArrayWithIndexsOf(symbols,inputText.text,["."," ","(",",","-","+","/","*","%",";",":","["]);
 					// get highest index (last used symbol)
 				var ls:int = symbols[0]; // (last symbol)
 				for (var i:int = 1; i < symbols.length; i++)
@@ -341,25 +356,25 @@ package
 				}
 				
 				// if the last symbol is a bracket and is the last thing in the inputbox: make it the second last symbol
-				if (inputtext.text.charAt(ls) == "(" && (ls == inputtext.length-1))
+				if (inputText.text.charAt(ls) == "(" && (ls == inputText.length-1))
 				{
-					inputtext.text = inputtext.text.substr(0,ls);
+					inputText.text = inputText.text.substr(0,ls);
 					changeInputbox();
 					return;
 				}
 				
 				// Remove what you're currently writing
-				inputtext.text = inputtext.text.substr(0,ls+1);
+				inputText.text = inputText.text.substr(0,ls+1);
 				// Appened suggestion
-				inputtext.appendText(cicle[cicle.length-1-hpos]);
+				inputText.appendText(cicle[cicle.length-1-hpos]);
 			}
 			else
 			{
-			// Otherwise replace the whole inputtext
-				inputtext.text = cicle[cicle.length-1-hpos]; // Replace text
+				// Otherwise replace the whole inputText
+				inputText.text = cicle[cicle.length-1-hpos]; // Replace text
 			}
 			
-			inputtext.setSelection(inputtext.length,inputtext.length);
+			inputText.setSelection(inputText.length,inputText.length);
 		}
 		
 		//////////////////////////
@@ -371,18 +386,18 @@ package
 		private var hitMax:Boolean = false;
 		
 		// Update while typing
-		private function typed(e:TextEvent):void
+		private function onTextInput(e:TextEvent):void
 		{
-			if (e.text == "`" || inputtext.text == "`")
-				inputtext.text = inputtext.text.slice(0, -1);
+			if (e.text == "`" || inputText.text == "`")
+				inputText.text = inputText.text.slice(0, -1);
 			
-			showsuggestions(inputtext.text + e.text);
+			showSuggestions(inputText.text + e.text);
 		}
 		
-		private function showsuggestions(str:String):void
+		private function showSuggestions(str:String):void
 		{
 			// reset to defaults
-			hidesuggestions();	// hide previous
+			hideSuggestions();	// hide previous
 			areSuggestions = false;
 			hitMax = false;
 			
@@ -391,9 +406,7 @@ package
 			
 			// check for ';'s (end of commands)
 			if (str.indexOf(";") > 1)
-			{
 				str = str.slice(str.lastIndexOf(";")+1,str.length);
-			}
 			
 			// change str to latest var user is writing
 			str = stringReplaceAll(str," ");
@@ -430,15 +443,15 @@ package
 						// Vars
 						for each (var v:XML in description.variable)
 						{
-							if (suggesttext.numLines < maxSuggestions)
+							if (suggestText.numLines < maxSuggestions)
 							{
 								if(v.@name.indexOf(stre) == 0)
 								{
 									if (showTypes)
 										type = ":" + v.@type;
 									
-									cmdsuggest.push(v.@name);
-									suggesttext.appendText(v.@name + type + "\n");
+									cmdSuggest.push(v.@name);
+									suggestText.appendText(v.@name + type + "\n");
 									areSuggestions = true;
 								}
 							}
@@ -451,15 +464,15 @@ package
 						// Accessors
 						for each (var a:XML in description.accessor)
 						{
-							if (suggesttext.numLines < maxSuggestions)
+							if (suggestText.numLines < maxSuggestions)
 							{
 								if(a.@name.indexOf(stre) == 0)
 								{
 									if (showTypes)
 										type = ":" + a.@type;
 									
-									cmdsuggest.push(a.@name);
-									suggesttext.appendText(a.@name + type + " (accessor)\n");
+									cmdSuggest.push(a.@name);
+									suggestText.appendText(a.@name + type + " (accessor)\n");
 									areSuggestions = true;
 								}
 							}
@@ -472,30 +485,30 @@ package
 						// Methods / Functions
 						for each (var m:XML in description.method)
 						{
-							if (suggesttext.numLines < maxSuggestions)
+							if (suggestText.numLines < maxSuggestions)
 							{
 								if(m.@name.indexOf(stre) == 0)
 								{
 									if (showTypes)
 										type = ":" + m.@returnType;
 									
-									suggesttext.appendText(m.@name + "(");
+									suggestText.appendText(m.@name + "(");
 									areSuggestions = true;
 									// Parameters
 									if (m.parameter != undefined)
 									{
 										for each (var p:XML in m.parameter)
 										{
-											suggesttext.appendText(p.@type+",");
+											suggestText.appendText(p.@type+",");
 										}
-										suggesttext.text = suggesttext.text.slice(0,suggesttext.text.length-1);
-										cmdsuggest.push(m.@name+"(");
+										suggestText.text = suggestText.text.slice(0,suggestText.text.length-1);
+										cmdSuggest.push(m.@name+"(");
 									}
 									else
 									{
-										cmdsuggest.push(m.@name+"();");
+										cmdSuggest.push(m.@name+"();");
 									}
-									suggesttext.appendText(")" + type +"\n");
+									suggestText.appendText(")" + type +"\n");
 								}
 							}
 							else
@@ -511,10 +524,10 @@ package
 					{
 						// if there were more then what can be displayed; add a last item called "..."
 						if (hitMax)
-							suggesttext.appendText("...");
+							suggestText.appendText("...");
 						
-						suggesttext.visible = true;
-						hpos = cmdsuggest.length;
+						suggestText.visible = true;
+						hpos = cmdSuggest.length;
 					}
 				}
 				catch (er:Error)
@@ -524,12 +537,12 @@ package
 			}
 		}
 		
-		private function hidesuggestions():void
+		private function hideSuggestions():void
 		{
-			suggesttext.visible = false;
-			suggesttext.text = "";
-			suggesttext.height = 20;
-			cmdsuggest = new Array();
+			suggestText.visible = false;
+			suggestText.text = "";
+			suggestText.height = 20;
+			cmdSuggest = new Array();
 			hpos = -1;
 		}
 		
@@ -537,7 +550,7 @@ package
 		//		Interpreting	//
 		/////////////////////////
 		
-		// Seperate commands (by ;) and interpret them
+		/** Seperate commands (by ;) and evaluates them. */
 		public function eval(str:String):void
 		{
 			if (str.indexOf(";") > 1)
@@ -591,7 +604,7 @@ package
 				{
 					switch (str)
 					{
-						case "clear"	: historytext.text = ""; 	break;
+						case "clear"	: historyText.text = ""; 	break;
 						case "help"		: echo(help,"#0099CC"); 	break;
 						case "author"	: echo(author,"#0099CC"); 	break;
 						default			: getVar(str); 				break;
@@ -871,6 +884,7 @@ package
 			{
 				switch (pars.length)
 				{
+					default: obj = new cl(); break;
 					case 1 : obj = new cl(pars[0]); break;
 					case 2 : obj = new cl(pars[0],pars[1]); break;
 					case 3 : obj = new cl(pars[0],pars[1],pars[2]); break;
@@ -882,7 +896,6 @@ package
 					case 9 : obj = new cl(pars[0],pars[1],pars[2],pars[3],pars[4],pars[5],pars[6],pars[7],pars[8]); break;
 					case 10: obj = new cl(pars[0],pars[1],pars[2],pars[3],pars[4],pars[5],pars[6],pars[7],pars[8],pars[9]); break;
 					case 11: obj = new cl(pars[0],pars[1],pars[2],pars[3],pars[4],pars[5],pars[6],pars[7],pars[8],pars[9],pars[10]); break;
-					default: obj = new cl(); break;
 				}
 			}
 			catch(e:Error)
@@ -937,11 +950,14 @@ package
 					str = str.substr(1,str.length-2);
 				res = str.split(",");
 				
-				for (var i:int = 0; i < res.length; i++){
-					try {
+				for (var i:int = 0; i < res.length; i++)
+				{
+					try
+					{
 						res[i] = stringToVarWithCalculation(res[i]);
 					}
-					catch (er:Error){
+					catch (er:Error)
+					{
 						// do nothing
 					}
 				}
@@ -1143,6 +1159,11 @@ package
 		/////////////////////////
 		
 		// Messages
+		
+		/** 
+		 * Echos parameters to the developer console. 
+		 * If last parameter is a string with it's first character being a '#' (eg: string is "#FFFF00") it will echo the previous parameters in that colour.
+		 * */
 		public function echo(... args):void
 		{
 			// Check for Colour
@@ -1164,14 +1185,16 @@ package
 					str += " ";
 			}
 				
-			historytext.htmlText += "<font color=\"" + colour +"\">" + str + "</font>\n";
-			historytext.scrollV = historytext.maxScrollV;
+			historyText.htmlText += "<font color=\"" + colour +"\">" + str + "</font>\n";
+			historyText.scrollV = historyText.maxScrollV;
 		}
+		/** Echos parameters to the developer console in red (#FF0000). */
 		public function error(... args):void
 		{
 			args.push( "#FF0000" );
 			echo.apply(null, args);
 		}
+		/** Echos parameters to the developer console in blue (#00CCFF). */
 		public function warn(... args):void
 		{
 			args.push( "#00CCFF" );
@@ -1217,9 +1240,8 @@ package
 				}
 			}
 			else
-			{
 				temp = stringReplaceAll(str, r, rw);
-			}
+			
 			return temp;
 		}
 		
@@ -1286,7 +1308,7 @@ package
 			{
 				container.visible = true;
 			
-				slideAnimation_target = -historytext.height - inputtext.height;
+				slideAnimation_target = -historyText.height - inputText.height;
 			}
 		}
 		private function stopSlideAnimation():void
@@ -1305,9 +1327,7 @@ package
 				
 				// Stop
 				if (container.y >= slideAnimation_target)
-				{
 					stopSlideAnimation();
-				}
 			}
 			else if (container.y >= slideAnimation_target)
 			{
@@ -1436,10 +1456,10 @@ package
 				// position				
 				tracerNames.x = tracerAlignX - tracerNames.width;
 				tracer.x = tracerNames.x - tracer.width - 10;
-				if (tracerAlignY < historytext.height + inputtext.height)
+				if (tracerAlignY < historyText.height + inputText.height)
 				{
-					tracer.y 	  = container.y + inputtext.y + inputtext.height + tracerAlignY;
-					tracerNames.y = container.y + inputtext.y + inputtext.height + tracerAlignY;
+					tracer.y 	  = container.y + inputText.y + inputText.height + tracerAlignY;
+					tracerNames.y = container.y + inputText.y + inputText.height + tracerAlignY;
 				}
 				else
 				{
