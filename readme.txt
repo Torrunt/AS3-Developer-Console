@@ -3,7 +3,10 @@ Torrunt's AS3 Developer Console
 
 An AS3 class that let's you access every public variable/function (that can be accessed from your main class) in your project while it's running using a very simple console user interface.
 
-For the latest update notes go to:
+Download the latest version:
+https://github.com/Torrunt/AS3-Developer-Console/archive/master.zip
+
+Update Notes:
 https://github.com/Torrunt/AS3-Developer-Console/wiki/Update-Notes
 
 Author
