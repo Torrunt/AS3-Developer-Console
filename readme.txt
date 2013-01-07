@@ -21,7 +21,7 @@ Features
 - The ability to access/use imported classes and their static functions and variables
 - Auto-complete/ Suggestions (use up/down keys to cycle through them)
 - Used commands History (use up/down to cycle through them when the auto-complete box is NOT showing)
-- Calculations (+,-,/,*,%).
+- Calculations (+,-,/,*,%)
 - Shorthand calculations (+=, -=, /=, *=, %=)
 - Echo function with custom colours as well as error and warn functions
 - Ability to enter multiple commands at once (eg: function(); something += 2; function2();)

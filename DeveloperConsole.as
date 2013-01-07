@@ -660,13 +660,41 @@ package
 				
 					// change dots but leave dots inside array literals
 				var str:String = stringReplaceButExclude(varname,".",["[","]","(",")"],"`",[false,false,false,false]);
-				
 				var v:Array = str.split("`");
 				
-				var ob:* = main;
-				var tempAry:Array; // for array items if needed
-				
-				for (var i:int = 0; i < v.length-1; i++)
+				assignVar(varname, vset, v, main);
+			}
+			catch (er:Error)
+			{
+				// Variable Does not exist
+				var index:int = tempVarNames.indexOf(v[0]);
+				if (index != -1)
+				{
+					// Change Temporary Variable
+					if (v.length != 1)
+						assignVar(varname, vset, v, tempVars[index], true);
+					else
+						tempVars[index] = vset;
+					
+					echo(varname + " is now " + vset);
+				}
+				else if (createVarsThatDontExist && v.length == 1)
+				{
+					// Create Temporary Variable
+					tempVarNames.push(v[0]);
+					tempVars.push(vset);
+					
+					warn("Temporary variable called \"" + v[0] + "\" created with the value " + vset);
+				}
+				else
+					error(er.message);
+			}
+		}
+		private function assignVar(varname:String, vset:*, v:Array, ob:*, skipFirstIndex:Boolean = false):void
+		{
+			var tempAry:Array; // for array items if needed
+			
+			for (var i:int = skipFirstIndex ? 1 : 0; i < v.length-1; i++)
 				{
 					if (v[i].indexOf("[") > -1)
 					{
@@ -681,9 +709,7 @@ package
 						}
 					}
 					else
-					{
 						ob = ob[v[i]];
-					}
 				}
 				
 				if (v[v.length-1].indexOf("[") == -1)
@@ -711,38 +737,6 @@ package
 						default: ob[tempAry[0]][tempAry[1]] = vset; break;
 					}
 				}
-			}
-			catch (er:Error)
-			{
-				// Variable Does not exist
-				var index:int = tempVarNames.indexOf(v[0]);
-				if (index != -1)
-				{
-					// Change Temporary Variable
-					if (v.length != 1)
-					{
-						ob = tempVars[index];
-						for (i = 1; i < v.length-1; i++)
-							ob = ob[v[i]];
-						
-						ob[v[v.length - 1]] = vset;
-					}
-					else
-						tempVars[index] = vset;
-					
-					echo(varname + " is now " + vset);
-				}
-				else if (createVarsThatDontExist && v.length == 1)
-				{
-					// Create Temporary Variable
-					tempVarNames.push(v[0]);
-					tempVars.push(vset);
-					
-					warn("Temporary variable called \"" + v[0] + "\" created with the value " + vset);
-				}
-				else
-					error(er.message);
-			}
 		}
 		
 		// Covert a string to useable variable
@@ -769,11 +763,7 @@ package
 					ob = base;
 					for (var i:int = 0; i < v.length-lo; i++)
 					{
-						if (v[i].indexOf("[") == -1)
-						{
-							ob = ob[v[i]];
-						}
-						else
+						if (v[i].indexOf("[") != -1)
 						{
 							// if an Array Item
 							var tempAry:Array = stringToArrayItem(v[i]);
@@ -785,6 +775,8 @@ package
 								default: ob = ob[tempAry[0]][tempAry[1]]; break;
 							}
 						}
+						else
+							ob = ob[v[i]];
 					}
 				}
 				catch (e:Error)
@@ -819,8 +811,23 @@ package
 						if (index != -1)
 						{
 							ob = tempVars[index];
-							for (i = 1; i < v.length-lo; i++)
-								ob = ob[v[i]];
+							for (i = 1; i < v.length - lo; i++)
+							{
+								if (v[i].indexOf("[") != -1)
+								{
+									// if an Array Item
+									tempAry = stringToArrayItem(v[i]);
+									
+									switch (tempAry.length)
+									{
+										case 4: ob = ob[tempAry[0]][tempAry[1]][tempAry[2]][tempAry[3]]; break;
+										case 3: ob = ob[tempAry[0]][tempAry[1]][tempAry[2]]; break;
+										default: ob = ob[tempAry[0]][tempAry[1]]; break;
+									}
+								}
+								else
+									ob = ob[v[i]];
+							}
 						}
 						else
 							ob = str;
