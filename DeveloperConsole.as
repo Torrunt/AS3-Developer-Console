@@ -1,11 +1,11 @@
-﻿// What		: AS3 Developer Console	(v1.08) - http://code.google.com/p/as3developerconsole/
+﻿// What		: AS3 Developer Console	(v1.08) - https://github.com/Torrunt/AS3-Developer-Console
 // Author	: Corey Zeke Womack (Torrunt)
 // Contact	: me@torrunt.net
 // Website	: torrunt.net
 
 // Notes:
 // - Type 'help' in console for help.
-// - If your testing your project in the Flash IDE make sure 'Disable Keyboard Shortcuts' is ticked.
+// - If you're testing your project in the Adobe Flash IDE make sure 'Disable Keyboard Shortcuts' is ticked.
 // - When testing your project in an Adobe Flash IDE you have to click the swf at least once to be able to see the text cursor.
 
 package 
@@ -59,9 +59,9 @@ package
 		public var tracerOneCiclePerLine_seperator:String = "   ";
 		
 		
-		private static var versionName:String = "Torrunt's AS3 Developer Console (v1.08)"
-		private static var help:String = " - Type 'clear' to clear the console.\n - Type 'author' to get info on the author of this console.\n - Use Quotations when you want enter string literal with spaces (\"\")\n - Use Square Brackets when you want to use an arral literal (e.g:[0,1]).\n - You can do multiple commands at once by seperating them with ';'s.\n - You can also put x# after a ';' to do that command # many times.\n - Calculations are allowed when assigning or in parameters (+,-,*,/,%). BIMDAS is not supported.\n - Type 'trace:something' to start tracing something or 'stoptrace:something' to stop tracing it.\n - You can also use 'trace:fps' to check your fps.\n - Use the Up/Down arrow keys to go through your previous used commands or suggestions\n - Use PgUp and PgDn on your keyboard to scroll up and down";
-		private static var author:String = versionName + " was programmed by Corey Zeke Womack (Torrunt)\nme@torrunt.net\nhttp://torrunt.net";
+		private const VERSION_NAME:String = "Torrunt's AS3 Developer Console (v1.08)"
+		private const HELP:String = " - Type 'clear' to clear the console.\n - Type 'author' to get info on the author of this console.\n - Use Quotations when you want enter string literal with spaces (\"\")\n - Use Square Brackets when you want to use an arral literal (e.g:[0,1]).\n - You can do multiple commands at once by seperating them with ';'s.\n - You can also put x# after a ';' to do that command # many times.\n - Calculations are allowed when assigning or in parameters (+,-,*,/,%). BIMDAS is not supported.\n - Type 'trace:something' to start tracing something or 'stoptrace:something' to stop tracing it.\n - You can also use 'trace:fps' to check your fps.\n - Use the Up/Down arrow keys to go through your previous used commands or suggestions\n - Use PgUp and PgDn on your keyboard to scroll up and down";
+		private const AUTHOR:String = VERSION_NAME + " was programmed by Corey Zeke Womack (Torrunt)\nme@torrunt.net\nhttp://torrunt.net";
 		
 		// Creating / Defaults
 		private var main:*;
@@ -187,7 +187,7 @@ package
 			tracerNames.visible = false;
 			
 			// Startup Message
-			echo(versionName, "-", "torrunt.net");
+			echo(VERSION_NAME, "-", "torrunt.net");
 			
 			// Animation start position
 			if (slideAnimation)
@@ -605,8 +605,8 @@ package
 					switch (str)
 					{
 						case "clear"	: historyText.text = ""; 	break;
-						case "help"		: echo(help,"#0099CC"); 	break;
-						case "author"	: echo(author,"#0099CC"); 	break;
+						case "help"		: echo(HELP, "#0099CC"); 	break;
+						case "author"	: echo(AUTHOR, "#0099CC");	break;
 						default			: getVar(str); 				break;
 					}
 				}
