@@ -42,7 +42,7 @@ package
 		/** If true, the tracer table is shown while tracing. */
 		public var tracerView:Boolean 				= true;
 		/** If true, as3's trace() function is called when using the tracer	(IDE Output). */
-		public var tracerActualTrace:Boolean 		= true;
+		public var tracerActualTrace:Boolean 		= false;
 		/** If true, as3's trace() function is called when the tracer is tracing the fps */
 		public var tracerActualTraceFPS:Boolean 	= false;
 		/** 
@@ -58,6 +58,8 @@ package
 		 */
 		public var tracerOneCiclePerLine_seperator:String = "   ";
 		
+		private const colour_type:String = "06C1FF";
+		private const colour_param_type:String = "B5B5B5";
 		
 		private const VERSION_NAME:String = "Torrunt's AS3 Developer Console (v1.08)"
 		private const HELP:String = " - Type 'clear' to clear the console.\n - Type 'author' to get info on the author of this console.\n - Use Quotations when you want enter string literal with spaces (\"\")\n - Use Square Brackets when you want to use an arral literal (e.g:[0,1]).\n - You can do multiple commands at once by seperating them with ';'s.\n - You can also put x# after a ';' to do that command # many times.\n - Calculations are allowed when assigning or in parameters (+,-,*,/,%). BIMDAS is not supported.\n - Type 'trace:something' to start tracing something or 'stoptrace:something' to stop tracing it.\n - You can also use 'trace:fps' to check your fps.\n - Use the Up/Down arrow keys to go through your previous used commands or suggestions\n - Use PgUp and PgDn on your keyboard to scroll up and down";
@@ -154,6 +156,7 @@ package
 			suggestText.backgroundColor = 0x000000;
 			suggestText.autoSize = TextFieldAutoSize.LEFT;
 			suggestText.visible = false;
+			suggestText.multiline = true;
 			
 				// Tracer
 			tracerAlignX = main.stage.stageWidth - 5;
@@ -448,10 +451,10 @@ package
 								if(v.@name.indexOf(stre) == 0)
 								{
 									if (showTypes)
-										type = ":" + v.@type;
+										type = ":" + "<font color=\"#" + colour_type + "\">" + v.@type + "</font>";
 									
 									cmdSuggest.push(v.@name);
-									suggestText.appendText(v.@name + type + "\n");
+									suggestText.htmlText += v.@name + type + "<br>";
 									areSuggestions = true;
 								}
 							}
@@ -469,10 +472,10 @@ package
 								if(a.@name.indexOf(stre) == 0)
 								{
 									if (showTypes)
-										type = ":" + a.@type;
+										type = ":" + "<font color=\"#" + colour_type + "\">" + a.@type + "</font>";
 									
 									cmdSuggest.push(a.@name);
-									suggestText.appendText(a.@name + type + " (accessor)\n");
+									suggestText.htmlText += a.@name + type + " <font color=\"#818181\">(accessor)</font><br>";
 									areSuggestions = true;
 								}
 							}
@@ -489,26 +492,33 @@ package
 							{
 								if(m.@name.indexOf(stre) == 0)
 								{
-									if (showTypes)
-										type = ":" + m.@returnType;
+									var text:String;
 									
-									suggestText.appendText(m.@name + "(");
+									if (showTypes)
+										type = ":" + "<font color=\"#" + colour_type + "\">" + m.@returnType + "</font>";
+									
+									text = m.@name + "(";
 									areSuggestions = true;
 									// Parameters
 									if (m.parameter != undefined)
 									{
+										var first:Boolean = true;
 										for each (var p:XML in m.parameter)
 										{
-											suggestText.appendText(p.@type+",");
+											if (!first)
+												text += ", ";
+											else
+												first = false;
+												
+											text += "<font color=\"#" + colour_param_type + "\">" + p.@type + "</font>";
 										}
-										suggestText.text = suggestText.text.slice(0,suggestText.text.length-1);
 										cmdSuggest.push(m.@name+"(");
 									}
 									else
 									{
 										cmdSuggest.push(m.@name+"();");
 									}
-									suggestText.appendText(")" + type +"\n");
+									suggestText.htmlText += text + ")" + type + "<br>";
 								}
 							}
 							else
@@ -524,7 +534,7 @@ package
 					{
 						// if there were more then what can be displayed; add a last item called "..."
 						if (hitMax)
-							suggestText.appendText("...");
+							suggestText.htmlText += "...";
 						
 						suggestText.visible = true;
 						hpos = cmdSuggest.length;
@@ -540,7 +550,7 @@ package
 		private function hideSuggestions():void
 		{
 			suggestText.visible = false;
-			suggestText.text = "";
+			suggestText.htmlText = "";
 			suggestText.height = 20;
 			cmdSuggest = new Array();
 			hpos = -1;
