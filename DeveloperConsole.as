@@ -62,7 +62,18 @@ package
 		private const colour_param_type:String = "B5B5B5";
 		
 		private const VERSION_NAME:String = "Torrunt's AS3 Developer Console (v1.08)"
-		private const HELP:String = " - Type 'clear' to clear the console.\n - Type 'author' to get info on the author of this console.\n - Use Quotations when you want enter string literal with spaces (\"\")\n - Use Square Brackets when you want to use an arral literal (e.g:[0,1]).\n - You can do multiple commands at once by seperating them with ';'s.\n - You can also put x# after a ';' to do that command # many times.\n - Calculations are allowed when assigning or in parameters (+,-,*,/,%). BIMDAS is not supported.\n - Type 'trace:something' to start tracing something or 'stoptrace:something' to stop tracing it.\n - You can also use 'trace:fps' to check your fps.\n - Use the Up/Down arrow keys to go through your previous used commands or suggestions\n - Use PgUp and PgDn on your keyboard to scroll up and down";
+		private const HELP:String = " - Type 'clear' to clear the console\n" + 
+									" - Type 'author' to get info on the author of this console\n" + 
+									" - Use Quotations when you want enter string literal with spaces (\"\")\n" + 
+									" - Use Square Brackets when you want to use an arral literal (e.g:[0,1])\n" +
+									" - You can do multiple commands at once by seperating them with ';'s\n" +
+									" - You can also put x# after a ';' to do that command # many times\n" +
+									" - Calculations are allowed when assigning or in parameters (+,-,*,/,%). BIMDAS is not supported\n" +
+									" - Type 'trace:something' to start tracing something or 'stoptrace:something' to stop tracing it\n" +
+									" - You can also use 'trace:fps' to check your fps\n" +
+									" - Toggle Fullscreen console with the F7 key\n" +
+									" - Use the Up/Down arrow keys to go through your previous used commands or suggestions\n" +
+									" - Use PAGE UP/DOWN and HOME/END on your keyboard to scroll up and down";
 		private const AUTHOR:String = VERSION_NAME + " was programmed by Corey Zeke Womack (Torrunt)\nme@torrunt.net\nhttp://torrunt.net";
 		
 		// Creating / Defaults
@@ -79,6 +90,8 @@ package
 		private var cmdhistory:Array = new Array();
 		private var cicle:Array;
 		private var hpos:int = -1;
+		
+		private const consoleHeight_default:Number = consoleHeight;		
 		
 		// temp variables
 		private var tempVarNames:Array = new Array();
@@ -325,6 +338,18 @@ package
 				// Page Down
 			if (e.keyCode == 34)
 				historyText.scrollV++;
+				
+				// Home
+			if (e.keyCode == 36)
+				historyText.scrollV = 0;
+				
+				// End
+			if (e.keyCode == 35)
+				historyText.scrollV = historyText.maxScrollV;
+			
+			// Toggle Fullscreen (F7)
+			if (e.keyCode == 118)
+				toggleFullscreen();
 		}
 		
 			// Fix cursor position if you press up when moving through history or suggestions
@@ -536,6 +561,12 @@ package
 						if (hitMax)
 							suggestText.htmlText += "...";
 						
+						// Position (show above inputText if console is fullscreen)
+						if (consoleHeight == main.stage.stageHeight)
+							suggestText.y = inputText.y - suggestText.height;
+						else
+							suggestText.y = inputText.y + inputText.height;
+						
 						suggestText.visible = true;
 						hpos = cmdSuggest.length;
 					}
@@ -685,8 +716,6 @@ package
 						assignVar(varname, vset, v, tempVars[index], true);
 					else
 						tempVars[index] = vset;
-					
-					echo(varname + " is now " + vset);
 				}
 				else if (createVarsThatDontExist && v.length == 1)
 				{
@@ -1356,6 +1385,65 @@ package
 					stopSlideAnimation();
 					container.visible = false;
 				}
+			}
+		}
+		
+		//////////////////////////
+		//	 Fullscreen Toggle	//
+		/////////////////////////
+		
+		private function toggleFullscreen():void
+		{
+			if (consoleHeight != main.stage.stageHeight)
+				consoleHeight = main.stage.stageHeight; // Extend
+			else
+				consoleHeight = consoleHeight_default;  // Retract
+			
+			
+			if (slideAnimation)
+			{
+				main.addEventListener(Event.ENTER_FRAME, fullscreenSlide);
+				slideAnimation_animating = true;
+				slideAnimation_target = consoleHeight - 20;
+				suggestText.visible = false;
+			}
+			else
+			{
+				historyText.height = consoleHeight - 20;
+				inputText.y = historyText.height;
+			}
+		}
+		private function stopFullscreenSlideAnimation():void
+		{
+			historyText.height = consoleHeight - 20;
+			inputText.y = historyText.height;
+			suggestText.y = inputText.y + inputText.height;
+			historyText.scrollV = historyText.maxScrollV;
+			
+			main.removeEventListener(Event.ENTER_FRAME, fullscreenSlide);
+			slideAnimation_animating = false;
+		}
+		
+		private function fullscreenSlide(e:Event):void
+		{
+			if (historyText.height <= slideAnimation_target)
+			{
+				historyText.height += slideAnimation_speed;
+				inputText.y = historyText.height;
+				
+				// Stop
+				if (historyText.height >= slideAnimation_target)
+					stopFullscreenSlideAnimation();
+			}
+			else if (historyText.height >= slideAnimation_target)
+			{
+				historyText.height -= slideAnimation_speed;
+				inputText.y = historyText.height;
+				historyText.scrollV = historyText.maxScrollV;
+				
+				// Stop
+				if (historyText.height <= slideAnimation_target)
+					stopFullscreenSlideAnimation();
 			}
 		}
 		
