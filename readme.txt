@@ -6,9 +6,6 @@ An AS3 class that let's you access every public variable/function (that can be a
 Download the latest version:
 https://github.com/Torrunt/AS3-Developer-Console/archive/master.zip
 
-Update Notes:
-https://github.com/Torrunt/AS3-Developer-Console/wiki/Update-Notes
-
 Author
 -------
 Corey Zeke Womack (Torrunt) - me@torrunt.net
@@ -32,7 +29,7 @@ Features
 
 Install
 --------
-Simply create an instance of the developerconsole, add it and call console.toggle() to open/close it (or console.open() and console.close()).
+Simply create an instance of the DeveloperConsole, add it and call console.toggle() to open/close it (or console.open() and console.close()).
 
 For full instructions (including an example) for those who need it can be read over at:
 https://github.com/Torrunt/AS3-Developer-Console/wiki/Install-Instructions

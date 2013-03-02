@@ -1,4 +1,4 @@
-﻿// What		: AS3 Developer Console	(v1.08) - https://github.com/Torrunt/AS3-Developer-Console
+﻿// What		: AS3 Developer Console - https://github.com/Torrunt/AS3-Developer-Console
 // Author	: Corey Zeke Womack (Torrunt)
 // Contact	: me@torrunt.net
 // Website	: torrunt.net
@@ -61,11 +61,11 @@ package
 		private const colour_type:String = "06C1FF";
 		private const colour_param_type:String = "B5B5B5";
 		
-		private const VERSION_NAME:String = "Torrunt's AS3 Developer Console (v1.08)"
+		private const VERSION_NAME:String = "Torrunt's AS3 Developer Console"
 		private const HELP:String = " - Type 'clear' to clear the console\n" + 
 									" - Type 'author' to get info on the author of this console\n" + 
 									" - Use Quotations when you want enter string literal with spaces (\"\")\n" + 
-									" - Use Square Brackets when you want to use an arral literal (e.g:[0,1])\n" +
+									" - Use Square Brackets when you want to use an arral literal (e.g:[0][1])\n" +
 									" - You can do multiple commands at once by seperating them with ';'s\n" +
 									" - You can also put x# after a ';' to do that command # many times\n" +
 									" - Calculations are allowed when assigning or in parameters (+,-,*,/,%). BIMDAS is not supported\n" +
@@ -561,7 +561,7 @@ package
 						if (hitMax)
 							suggestText.htmlText += "...";
 						
-						// Position (show above inputText if console is fullscreen)
+						// Position (show above inputTest if console is fullscreen)
 						if (consoleHeight == main.stage.stageHeight)
 							suggestText.y = inputText.y - suggestText.height;
 						else
