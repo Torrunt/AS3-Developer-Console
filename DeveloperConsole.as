@@ -731,9 +731,11 @@ package
 		}
 		private function assignVar(varname:String, vset:*, v:Array, ob:*, skipFirstIndex:Boolean = false):void
 		{
-			var tempAry:Array; // for array items if needed
-			
-			for (var i:int = skipFirstIndex ? 1 : 0; i < v.length-1; i++)
+			try
+			{
+				var tempAry:Array; // for array items if needed
+				
+				for (var i:int = skipFirstIndex ? 1 : 0; i < v.length-1; i++)
 				{
 					if (v[i].indexOf("[") > -1)
 					{
@@ -776,6 +778,34 @@ package
 						default: ob[tempAry[0]][tempAry[1]] = vset; break;
 					}
 				}
+			
+			}
+			catch (e:Error)
+			{
+				// failed? is it a class?
+				var cl:* = v[0];
+				for (i = 0; i < v.length; i++)
+				{
+					try
+					{
+						ob = getDefinitionByName(cl) as Class;
+						break; // break out if it get's this far (if it's a class)
+					}
+					catch (e:Error)
+					{
+						cl = cl + "." + v[i+1];
+					}
+				}
+				
+				if (ob is Class)
+				{
+					// member of class?
+					for (i++; i < v.length; i++)
+					{
+						ob[v[v.length-1]] = vset;
+					}
+				}
+			}
 		}
 		
 		// Covert a string to useable variable
