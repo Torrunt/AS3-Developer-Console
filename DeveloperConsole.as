@@ -755,13 +755,6 @@ package
 				
 				if (v[v.length-1].indexOf("[") == -1)
 				{
-						// Check for invalid value
-					if (ob[v[v.length - 1]] != null && !isNaN(ob[v[v.length - 1]]) && isNaN(vset))
-					{
-						warn("Invalid Value.");
-						return;
-					}
-					
 					ob[v[v.length-1]] = vset;
 					
 					echo(varname + " is now " + ob[v[v.length-1]]);
@@ -870,7 +863,20 @@ package
 						// member of class?
 						for (i++; i < v.length-lo; i++)
 						{
-							ob = ob[v[i]];
+							if (v[i].indexOf("[") != -1)
+							{
+								// if an Array Item
+								tempAry = stringToArrayItem(v[i]);
+								
+								switch (tempAry.length)
+								{
+									case 4: ob = ob[tempAry[0]][tempAry[1]][tempAry[2]][tempAry[3]]; break;
+									case 3: ob = ob[tempAry[0]][tempAry[1]][tempAry[2]]; break;
+									default: ob = ob[tempAry[0]][tempAry[1]]; break;
+								}
+							}
+							else
+								ob = ob[v[i]];
 						}
 					}
 					else
