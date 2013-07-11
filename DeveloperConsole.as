@@ -696,14 +696,19 @@ package
 					vset = true;
 				else if (vset == "false")
 					vset = false;
-				
+					
+				// check if vset is Number
+				if (!isNaN(vset))
+					vset = Number(vset);
+					
 				// Assign
 				
 					// change dots but leave dots inside array literals
 				var str:String = stringReplaceButExclude(varname,".",["[","]","(",")"],"`",[false,false,false,false]);
 				var v:Array = str.split("`");
 				
-				assignVar(varname, vset, v, main);
+				if (!assignVar(varname, vset, v, main))
+					throw new Error();
 			}
 			catch (er:Error)
 			{
@@ -729,7 +734,7 @@ package
 					error(er.message);
 			}
 		}
-		private function assignVar(varname:String, vset:*, v:Array, ob:*, skipFirstIndex:Boolean = false):void
+		private function assignVar(varname:String, vset:*, v:Array, ob:*, skipFirstIndex:Boolean = false):Boolean
 		{
 			try
 			{
@@ -771,7 +776,8 @@ package
 						default: ob[tempAry[0]][tempAry[1]] = vset; break;
 					}
 				}
-			
+				
+				return true;
 			}
 			catch (e:Error)
 			{
@@ -790,6 +796,9 @@ package
 					}
 				}
 				
+				if (!(ob is Class))
+					return false;
+				
 				if (ob is Class)
 				{
 					// member of class?
@@ -798,7 +807,11 @@ package
 						ob[v[v.length-1]] = vset;
 					}
 				}
+				
+				return v.length > 1;
 			}
+			
+			return false;
 		}
 		
 		// Covert a string to useable variable
@@ -1487,7 +1500,7 @@ package
 		//		  Tracer		//
 		/////////////////////////
 		
-		private function setTrace(str:String):void
+		public function setTrace(str:String):void
 		{
 			var originalLength:int = traceVars.length;
 			
@@ -1507,7 +1520,7 @@ package
 				tracer.addEventListener(Event.ENTER_FRAME, traceUpdate);
 		}
 		
-		private function stopTrace(str:String):void
+		public function stopTrace(str:String):void
 		{
 			str = str.replace("stoptrace:","");
 			

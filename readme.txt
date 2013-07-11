@@ -25,7 +25,7 @@ Features
 - Multiplying Commands: Put an x and a number after a command to repeat it that many times (eg: spawnEnemy();x5)
 - Tracer: Trace things easily with the Tracer table and/or the built in trace()
 - FPS Counter: See what your current FPS is using the Tracer (trace:fps)
-- Temporary Variables: Create and use temporary variables through the console
+- Temporary Variables: Create and use temporary variables through the console (eg: blah = new flash.geom.Point(5,2); blah.x *= 2;)
 
 Install
 --------
