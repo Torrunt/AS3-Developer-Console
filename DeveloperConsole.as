@@ -712,15 +712,12 @@ package
 			}
 			catch (er:Error)
 			{
-				// Variable Does not exist
+				// Variable Does not exist / Invalid Type
 				var index:int = tempVarNames.indexOf(v[0]);
-				if (index != -1)
+				if (index == -1 && stringToVar(varname) != varname)
 				{
-					// Change Temporary Variable
-					if (v.length != 1)
-						assignVar(varname, vset, v, tempVars[index], true);
-					else
-						tempVars[index] = vset;
+					// Invalid Type
+					error("Invalid type");
 				}
 				else if (createVarsThatDontExist && v.length == 1)
 				{
@@ -796,9 +793,6 @@ package
 					}
 				}
 				
-				if (!(ob is Class))
-					return false;
-				
 				if (ob is Class)
 				{
 					// member of class?
@@ -806,6 +800,44 @@ package
 					{
 						ob[v[v.length-1]] = vset;
 					}
+				}
+				else
+				{
+					// temporary variable?
+					var index:int = tempVarNames.indexOf( v[0].indexOf("[") == -1 ? v[0] : v[0].substring(0, v[0].indexOf("[")) );
+					if (index != -1)
+					{
+						if (v.length > 1 || v[0].indexOf("[") != -1)
+						{
+							ob = tempVars[index];
+							for (i = (v[0].indexOf("[") != -1 ? 0 : 1); i < v.length; i++)
+							{
+								if (v[i].indexOf("[") != -1)
+								{
+									// if an Array Item
+									tempAry = stringToArrayItem(v[i]);
+									if (i == 0)
+										tempAry.shift();
+									
+									switch (tempAry.length)
+									{
+										case 4:  ob[tempAry[0]][tempAry[1]][tempAry[2]][tempAry[3]] = vset; break;
+										case 3: ob[tempAry[0]][tempAry[1]][tempAry[2]] = vset; break;
+										case 2: ob[tempAry[0]][tempAry[1]] = vset; break;
+										default: ob[tempAry[0]] = vset; break;
+									}
+								}
+								else
+									ob[v[i]] = vset;
+							}
+						}
+						else
+							tempVars[index] = vset;
+							
+						return true;
+					}
+					else
+						return false;
 				}
 				
 				return v.length > 1;
@@ -895,22 +927,25 @@ package
 					else
 					{
 						// temporary variable?
-						var index:int = tempVarNames.indexOf(v[0]);
+						var index:int = tempVarNames.indexOf( v[0].indexOf("[") == -1 ? v[0] : v[0].substring(0, v[0].indexOf("[")) );
 						if (index != -1)
 						{
 							ob = tempVars[index];
-							for (i = 1; i < v.length - lo; i++)
+							for (i = (v[0].indexOf("[") != -1 ? 0 : 1); i < v.length; i++)
 							{
 								if (v[i].indexOf("[") != -1)
 								{
 									// if an Array Item
 									tempAry = stringToArrayItem(v[i]);
+									if (i == 0)
+										tempAry.shift();
 									
 									switch (tempAry.length)
 									{
 										case 4: ob = ob[tempAry[0]][tempAry[1]][tempAry[2]][tempAry[3]]; break;
 										case 3: ob = ob[tempAry[0]][tempAry[1]][tempAry[2]]; break;
-										default: ob = ob[tempAry[0]][tempAry[1]]; break;
+										case 2: ob = ob[tempAry[0]][tempAry[1]]; break;
+										default: ob = ob[tempAry[0]]; break;
 									}
 								}
 								else

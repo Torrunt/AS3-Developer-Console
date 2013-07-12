@@ -6,6 +6,9 @@ An AS3 class that let's you access every public variable/function (that can be a
 Download the latest version:
 https://github.com/Torrunt/AS3-Developer-Console/archive/master.zip
 
+Update Notes:
+https://github.com/Torrunt/AS3-Developer-Console/commits/master
+
 Author
 -------
 Corey Zeke Womack (Torrunt) - me@torrunt.net
