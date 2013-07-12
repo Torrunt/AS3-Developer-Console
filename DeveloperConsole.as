@@ -799,6 +799,8 @@ package
 					for (i++; i < v.length; i++)
 					{
 						ob[v[v.length-1]] = vset;
+						
+						echo(varname + " is now " + ob[v[v.length-1]]);
 					}
 				}
 				else
@@ -828,11 +830,19 @@ package
 									}
 								}
 								else
+								{
 									ob[v[i]] = vset;
+									
+									echo(varname + " is now " + ob[v[i]]);
+								}
 							}
 						}
 						else
+						{
 							tempVars[index] = vset;
+							
+							echo(varname + " is now " + tempVars[index]);
+						}
 							
 						return true;
 					}
@@ -885,6 +895,9 @@ package
 						else
 							ob = ob[v[i]];
 					}
+					
+					if (ob == undefined)
+						throw new Error();
 				}
 				catch (e:Error)
 				{
